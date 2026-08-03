@@ -127,12 +127,11 @@
   td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .badge-inquired { background: #EDE9DE; color: var(--steel); }
+  .badge-not-reached { background: #EDE9DE; color: var(--steel); }
+  .badge-voicemail-email-left { background: #FBEFDD; color: var(--amber-deep); }
   .badge-booked { background: #E7F0E4; color: var(--sage); }
-  .badge-confirmed { background: #E1F0E9; color: #3E7A5C; }
-  .badge-completed { background: #E8E5DD; color: #6B6455; }
+  .badge-paid { background: #E1F0E9; color: #3E7A5C; }
   .badge-cancelled { background: #F5E4DE; color: var(--rust); }
-  .badge-disputed { background: #F9DEDE; color: #A83A3A; }
 
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
 
@@ -223,20 +222,25 @@
     </div>
 
     <div class="filter-group">
+      <div class="filter-label"><span>Program · 01</span></div>
+      <div class="chip-list" id="chips-program"></div>
+    </div>
+
+    <div class="filter-group">
       <div class="filter-label">
-        <span>Rep · 01</span>
+        <span>Rep · 02</span>
         <button class="manage" id="manage-reps-btn">edit</button>
       </div>
       <div class="chip-list" id="chips-rep"></div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label"><span>Program · 02</span></div>
-      <div class="chip-list" id="chips-program"></div>
+      <div class="filter-label"><span>Status · 03</span></div>
+      <div class="chip-list" id="chips-status"></div>
     </div>
 
     <div class="filter-group">
-      <div class="filter-label"><span>Location · 03</span></div>
+      <div class="filter-label"><span>Location · 04</span></div>
       <div class="chip-list" id="chips-location"></div>
     </div>
 
@@ -250,7 +254,7 @@
     <div class="topbar">
       <div>
         <h2 id="view-title">All records</h2>
-        <div class="sub" id="view-sub">rep: all · program: all · location: all</div>
+        <div class="sub" id="view-sub">program: all · rep: all · status: all · location: all</div>
       </div>
       <button class="btn btn-primary" id="new-record-btn">+ New record</button>
     </div>
@@ -258,21 +262,19 @@
     <div class="summary-strip">
       <div class="stub"><div class="num" id="sum-count">0</div><div class="lbl">Records shown</div></div>
       <div class="stub"><div class="num" id="sum-headcount">0</div><div class="lbl">Total headcount</div></div>
-      <div class="stub"><div class="num" id="sum-amount">$0</div><div class="lbl">Total amount</div></div>
     </div>
 
     <div class="table-wrap">
       <table id="records-table">
         <thead>
           <tr>
-            <th data-sort="GuestName">Guest / Org</th>
-            <th data-sort="Status">Status</th>
-            <th data-sort="EventDate">Event date</th>
-            <th data-sort="Rep">Rep</th>
             <th data-sort="ProgramType">Program</th>
+            <th data-sort="Rep">Rep</th>
+            <th data-sort="Status">Status</th>
             <th data-sort="Location">Location</th>
+            <th data-sort="GuestName">Guest / Org</th>
+            <th data-sort="EventDate">Event date</th>
             <th data-sort="Headcount">Headcount</th>
-            <th data-sort="Amount">Amount</th>
             <th>Notes</th>
             <th></th>
           </tr>
@@ -315,12 +317,11 @@
       <div class="form-row">
         <label>Status</label>
         <select id="f-status">
-          <option>Inquired</option>
+          <option>Not Reached</option>
+          <option>Voicemail/Email Left</option>
           <option>Booked</option>
-          <option>Confirmed</option>
-          <option>Completed</option>
+          <option>Paid</option>
           <option>Cancelled</option>
-          <option>Disputed</option>
         </select>
       </div>
       <div class="form-row">
@@ -342,10 +343,6 @@
       <div class="form-row">
         <label>Date inquired / spoken to</label>
         <input type="date" id="f-inquirydate">
-      </div>
-      <div class="form-row">
-        <label>Amount ($)</label>
-        <input type="number" id="f-amount" min="0" step="0.01" placeholder="0.00">
       </div>
     </div>
 
@@ -421,7 +418,7 @@
   const LS_URL_KEY = 'gst_script_url';
   const LS_REPS_KEY = 'gst_reps';
 
-  const DEFAULT_REPS = ['Corey', 'Jeremy'];
+  const DEFAULT_REPS = ['Corey', 'Deanna', 'Jeremy', 'Kay'];
   const PROGRAM_TYPES = ['Field Trip', 'Birthday', 'Outreach'];
   const LOCATIONS = ['DPS', 'DPKH', 'DPKR'];
 
@@ -487,12 +484,14 @@
   let repList = JSON.parse(localStorage.getItem(LS_REPS_KEY) || 'null') || DEFAULT_REPS.slice();
 
   let allRecords = [];
-  let filters = { Rep: 'all', ProgramType: 'all', Location: 'all' };
+  let filters = { ProgramType: 'all', Rep: 'all', Status: 'all', Location: 'all' };
   let sortKey = 'EventDate';
   let sortDir = 'asc';
   let pendingType = null; // set when creating a new record, after type picker
 
   const el = id => document.getElementById(id);
+
+  const STATUSES = ['Not Reached', 'Voicemail/Email Left', 'Booked', 'Paid', 'Cancelled'];
 
   function computeHeadcount(record) {
     const type = record.ProgramType;
@@ -529,8 +528,9 @@
   }
 
   function renderFilterChips() {
-    renderChipGroup(el('chips-rep'), repList, 'Rep');
     renderChipGroup(el('chips-program'), PROGRAM_TYPES, 'ProgramType');
+    renderChipGroup(el('chips-rep'), repList, 'Rep');
+    renderChipGroup(el('chips-status'), STATUSES, 'Status');
     renderChipGroup(el('chips-location'), LOCATIONS, 'Location');
     populateSelect(el('f-rep'), repList);
   }
@@ -539,7 +539,10 @@
     const num = Number(n) || 0;
     return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
-  function badgeClass(status) { return 'badge badge-' + (status || 'inquired').toLowerCase(); }
+  function slug(s) {
+    return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+  }
+  function badgeClass(status) { return 'badge badge-' + slug(status || 'not reached'); }
 
   // Sheet dates arrive as full ISO datetimes (e.g. "2026-09-30T04:00:00.000Z");
   // display just the calendar date, in local terms, no time component.
@@ -555,8 +558,9 @@
 
   function getFiltered() {
     return allRecords.filter(r =>
-      (filters.Rep === 'all' || r.Rep === filters.Rep) &&
       (filters.ProgramType === 'all' || r.ProgramType === filters.ProgramType) &&
+      (filters.Rep === 'all' || r.Rep === filters.Rep) &&
+      (filters.Status === 'all' || r.Status === filters.Status) &&
       (filters.Location === 'all' || r.Location === filters.Location)
     );
   }
@@ -566,9 +570,9 @@
 
     rows.sort((a, b) => {
       let av = a[sortKey], bv = b[sortKey];
-      if (sortKey === 'Amount' || sortKey === 'Headcount') {
-        av = sortKey === 'Headcount' ? computeHeadcount(a) : (Number(av) || 0);
-        bv = sortKey === 'Headcount' ? computeHeadcount(b) : (Number(bv) || 0);
+      if (sortKey === 'Headcount') {
+        av = computeHeadcount(a);
+        bv = computeHeadcount(b);
       } else {
         av = (av || '').toString(); bv = (bv || '').toString();
       }
@@ -584,14 +588,13 @@
     rows.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td>${escapeHtml(r.GuestName || '—')}</td>
-        <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
-        <td class="mono">${formatDateDisplay(r.EventDate)}</td>
-        <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
+        <td>${escapeHtml(r.Rep || '—')}</td>
+        <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
         <td>${escapeHtml(r.Location || '—')}</td>
+        <td>${escapeHtml(r.GuestName || '—')}</td>
+        <td class="mono">${formatDateDisplay(r.EventDate)}</td>
         <td class="mono">${computeHeadcount(r)}</td>
-        <td class="mono">${fmtMoney(r.Amount)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
           <button data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button>
@@ -609,10 +612,9 @@
 
     el('sum-count').textContent = rows.length;
     el('sum-headcount').textContent = rows.reduce((s, r) => s + computeHeadcount(r), 0).toLocaleString();
-    el('sum-amount').textContent = fmtMoney(rows.reduce((s, r) => s + (Number(r.Amount) || 0), 0));
 
     el('view-title').textContent = filters.ProgramType === 'all' ? 'All records' : filters.ProgramType + ' records';
-    el('view-sub').textContent = `rep: ${filters.Rep} · program: ${filters.ProgramType} · location: ${filters.Location}`;
+    el('view-sub').textContent = `program: ${filters.ProgramType} · rep: ${filters.Rep} · status: ${filters.Status} · location: ${filters.Location}`;
   }
 
   function renderAll() { renderFilterChips(); renderTable(); }
@@ -714,12 +716,11 @@
     el('f-eventdate-label').textContent = EVENTDATE_LABELS[type] || 'Event date';
 
     el('f-guest').value = record ? record.GuestName || '' : '';
-    el('f-status').value = record ? record.Status || 'Inquired' : 'Inquired';
+    el('f-status').value = record ? record.Status || 'Not Reached' : 'Not Reached';
     el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep !== 'all' ? filters.Rep : repList[0]);
     el('f-location').value = record ? record.Location || 'DPS' : (filters.Location !== 'all' ? filters.Location : 'DPS');
     el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';
     el('f-inquirydate').value = record ? toDateInput(record.InquiryDate) : (new Date().toISOString().slice(0,10));
-    el('f-amount').value = record ? record.Amount || '' : '';
     el('f-notes').value = record ? record.Notes || '' : '';
 
     renderTypeFields(type, record);
@@ -748,7 +749,6 @@
       Location: el('f-location').value,
       EventDate: el('f-eventdate').value,
       InquiryDate: el('f-inquirydate').value,
-      Amount: el('f-amount').value,
       Notes: el('f-notes').value.trim()
     };
     document.querySelectorAll('#type-fields-container [data-key]').forEach(input => {
@@ -811,7 +811,6 @@
     html += vField(EVENTDATE_LABELS[type] || 'Event date', formatDateDisplay(record.EventDate));
     html += vField('Date inquired / spoken to', formatDateDisplay(record.InquiryDate));
     html += vField('Headcount', computeHeadcount(record));
-    html += vField('Amount', fmtMoney(record.Amount));
     html += '</div>';
 
     const fields = TYPE_FIELDS[type] || [];

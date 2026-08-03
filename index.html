@@ -136,6 +136,14 @@
 
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
 
+  .row-actions { white-space: nowrap; }
+  .row-actions button {
+    all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
+    color: var(--steel); margin-right: 12px;
+  }
+  .row-actions button:hover { color: var(--ink); text-decoration: underline; }
+  .row-actions button.edit-link { color: var(--amber-deep); }
+
   .empty-state { padding: 60px 20px; text-align: center; color: var(--steel); }
   .empty-state .tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--amber-deep); margin-bottom: 8px; }
 
@@ -172,6 +180,23 @@
   .type-option .t-desc { font-family: var(--font-body); font-size: 12px; color: var(--steel); }
 
   .settings-body p { font-size: 13px; line-height: 1.5; color: var(--steel); }
+
+  /* View modal */
+  .view-section-title {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--steel-soft); margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--line);
+  }
+  .view-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
+  .view-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 16px; }
+  .view-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .view-field.full { grid-column: 1 / -1; }
+  .view-label {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel-soft);
+  }
+  .view-value { font-size: 13.5px; color: var(--ink); word-wrap: break-word; }
+  .view-value.empty { color: var(--steel-soft); font-style: italic; }
+  .view-value.notes { white-space: pre-wrap; line-height: 1.5; }
+  .view-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
 
   /* mobile */
   @media (max-width: 780px) {
@@ -249,6 +274,7 @@
             <th data-sort="Headcount">Headcount</th>
             <th data-sort="Amount">Amount</th>
             <th>Notes</th>
+            <th></th>
           </tr>
         </thead>
         <tbody id="records-tbody"></tbody>
@@ -281,7 +307,7 @@
     <input type="hidden" id="f-id">
     <input type="hidden" id="f-programtype">
 
-    <div class="form-grid">
+    <div class="form-grid" id="record-form-grid">
       <div class="form-row">
         <label id="f-guest-label">Guest name</label>
         <input type="text" id="f-guest">
@@ -335,6 +361,23 @@
       <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete record</button>
       <button class="btn btn-ghost" id="cancel-record-btn">Cancel</button>
       <button class="btn btn-primary" id="save-record-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- VIEW MODAL -->
+<div class="overlay" id="view-overlay">
+  <div class="modal">
+    <div class="view-header-row">
+      <div>
+        <h3 id="view-modal-title">Record</h3>
+        <div class="modal-kicker" id="view-modal-kicker"></div>
+      </div>
+    </div>
+    <div id="view-modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="close-view-btn">Close</button>
+      <button class="btn btn-primary" id="edit-from-view-btn">Edit</button>
     </div>
   </div>
 </div>
@@ -497,6 +540,15 @@
     return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
   }
   function badgeClass(status) { return 'badge badge-' + (status || 'inquired').toLowerCase(); }
+
+  // Sheet dates arrive as full ISO datetimes (e.g. "2026-09-30T04:00:00.000Z");
+  // display just the calendar date, in local terms, no time component.
+  function formatDateDisplay(val) {
+    if (!val) return '—';
+    const d = new Date(val);
+    if (isNaN(d)) return escapeHtml(String(val));
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
@@ -534,16 +586,25 @@
       tr.innerHTML = `
         <td>${escapeHtml(r.GuestName || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
-        <td class="mono">${escapeHtml(r.EventDate || '—')}</td>
+        <td class="mono">${formatDateDisplay(r.EventDate)}</td>
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
         <td>${escapeHtml(r.Location || '—')}</td>
         <td class="mono">${computeHeadcount(r)}</td>
         <td class="mono">${fmtMoney(r.Amount)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
+        <td class="row-actions">
+          <button data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button>
+        </td>
       `;
-      tr.onclick = () => openRecordModal(r);
       tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('[data-view]').forEach(btn => {
+      btn.onclick = () => openViewModal(allRecords.find(r => r.ID === btn.dataset.view));
+    });
+    tbody.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
     });
 
     el('sum-count').textContent = rows.length;
@@ -723,6 +784,57 @@
     }
   };
 
+  // ---------- View modal ----------
+  const viewOverlay = el('view-overlay');
+  let viewingRecord = null;
+
+  function vField(label, value, opts) {
+    opts = opts || {};
+    const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
+    const displayVal = hasValue ? escapeHtml(value) : '—';
+    const cls = 'view-value' + (hasValue ? '' : ' empty') + (opts.notes ? ' notes' : '');
+    return `<div class="view-field${opts.full ? ' full' : ''}"><div class="view-label">${label}</div><div class="${cls}">${displayVal}</div></div>`;
+  }
+
+  function openViewModal(record) {
+    if (!record) return;
+    viewingRecord = record;
+    const type = record.ProgramType;
+    el('view-modal-title').textContent = record.GuestName || 'Record';
+    el('view-modal-kicker').textContent = type;
+
+    let html = '<div class="view-section-title">Overview</div><div class="view-grid">';
+    html += vField(GUEST_LABELS[type] || 'Guest name', record.GuestName);
+    html += vField('Status', record.Status);
+    html += vField('Rep', record.Rep);
+    html += vField('Location', record.Location);
+    html += vField(EVENTDATE_LABELS[type] || 'Event date', formatDateDisplay(record.EventDate));
+    html += vField('Date inquired / spoken to', formatDateDisplay(record.InquiryDate));
+    html += vField('Headcount', computeHeadcount(record));
+    html += vField('Amount', fmtMoney(record.Amount));
+    html += '</div>';
+
+    const fields = TYPE_FIELDS[type] || [];
+    if (fields.length) {
+      html += '<div class="view-section-title">Program details</div><div class="view-grid">';
+      fields.forEach(f => { html += vField(f.label, record[f.key]); });
+      html += '</div>';
+    }
+
+    html += '<div class="view-section-title">Notes</div><div class="view-grid">';
+    html += vField('Notes', record.Notes, { full: true, notes: true });
+    html += '</div>';
+
+    el('view-modal-body').innerHTML = html;
+    viewOverlay.classList.add('open');
+  }
+
+  el('close-view-btn').onclick = () => viewOverlay.classList.remove('open');
+  el('edit-from-view-btn').onclick = () => {
+    viewOverlay.classList.remove('open');
+    if (viewingRecord) openRecordModal(viewingRecord);
+  };
+
   // ---------- Settings ----------
   const settingsOverlay = el('settings-overlay');
   el('open-settings').onclick = () => {
@@ -754,7 +866,7 @@
   };
 
   // close overlays on backdrop click
-  [typeOverlay, recordOverlay, settingsOverlay, manageOverlay].forEach(ov => {
+  [typeOverlay, recordOverlay, viewOverlay, settingsOverlay, manageOverlay].forEach(ov => {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
   });
 

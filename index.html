@@ -106,11 +106,11 @@
   .btn-ghost { background: transparent; border: 1px solid var(--steel); color: var(--steel); }
   .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
 
-  .summary-strip { display: flex; gap: 0; margin: 18px 28px 0; border: 1px solid var(--line); background: #fff; }
-  .stub { flex: 1; padding: 12px 18px; border-right: 1px dashed var(--line); }
-  .stub:last-child { border-right: none; }
-  .stub .num { font-family: var(--font-mono); font-size: 20px; font-weight: 500; color: var(--ink); }
-  .stub .lbl { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--steel); margin-top: 2px; }
+  .summary-line {
+    font-family: var(--font-mono); font-size: 12px; color: var(--steel);
+    margin: 14px 28px 0; letter-spacing: 0.02em;
+  }
+  .summary-line strong { color: var(--ink); font-weight: 600; }
 
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: #fff; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -205,8 +205,7 @@
     .brand { width: 100%; }
     .filter-group { min-width: 140px; }
     .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
-    .summary-strip { flex-wrap: wrap; margin: 14px 14px 0; }
-    .stub { min-width: 45%; border-bottom: 1px dashed var(--line); }
+    .summary-line { margin: 14px 14px 0; }
     .table-wrap { margin: 14px; }
     .form-grid { grid-template-columns: 1fr; }
   }
@@ -259,10 +258,7 @@
       <button class="btn btn-primary" id="new-record-btn">+ New record</button>
     </div>
 
-    <div class="summary-strip">
-      <div class="stub"><div class="num" id="sum-count">0</div><div class="lbl">Records shown</div></div>
-      <div class="stub"><div class="num" id="sum-headcount">0</div><div class="lbl">Total headcount</div></div>
-    </div>
+    <div class="summary-line" id="summary-line">0 records shown</div>
 
     <div class="table-wrap">
       <table id="records-table">
@@ -611,8 +607,7 @@
       btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
     });
 
-    el('sum-count').textContent = rows.length;
-    el('sum-headcount').textContent = rows.reduce((s, r) => s + computeHeadcount(r), 0).toLocaleString();
+    el('summary-line').innerHTML = `<strong>${rows.length}</strong> record${rows.length === 1 ? '' : 's'} shown`;
 
     el('view-title').textContent = filters.ProgramType === 'all' ? 'All records' : filters.ProgramType + ' records';
     el('view-sub').textContent = `program: ${filters.ProgramType} · rep: ${filters.Rep} · status: ${filters.Status} · location: ${filters.Location}`;

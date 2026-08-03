@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Group Sales Tracker · Discovery Place</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #1C2B39;
+    --ink-2: #24374A;
+    --paper: #F6F3EC;
+    --paper-2: #EFEBE0;
+    --steel: #55697A;
+    --steel-soft: #8B99A6;
+    --amber: #E4982F;
+    --amber-deep: #C77E1E;
+    --sage: #6F9772;
+    --rust: #B85C3E;
+    --line: #D8D2C2;
+    --line-dark: #33475A;
+    --font-display: 'Space Grotesk', sans-serif;
+    --font-body: 'Inter', sans-serif;
+    --font-mono: 'IBM Plex Mono', monospace;
+  }
+
+  * { box-sizing: border-box; }
+  body { margin: 0; }
+
+  html, body {
+    background: var(--ink);
+    color: var(--paper);
+    font-family: var(--font-body);
+    height: 100%;
+  }
+
+  .app {
+    display: flex;
+    min-height: 100vh;
+  }
+
+  /* ---------- Rail ---------- */
+  .rail {
+    width: 250px;
+    flex-shrink: 0;
+    background: var(--ink-2);
+    border-right: 1px solid var(--line-dark);
+    padding: 22px 18px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .brand {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+  .brand .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    color: var(--amber);
+    text-transform: uppercase;
+  }
+  .brand h1 {
+    font-family: var(--font-display);
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.25;
+  }
+
+  .filter-group { display: flex; flex-direction: column; gap: 8px; }
+  .filter-label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--steel-soft);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .filter-label button.manage {
+    all: unset;
+    cursor: pointer;
+    color: var(--amber);
+    font-family: var(--font-mono);
+    font-size: 10px;
+  }
+  .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
+
+  .chip {
+    position: relative;
+    font-family: var(--font-body);
+    font-size: 12.5px;
+    font-weight: 500;
+    color: var(--paper);
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--line-dark);
+    padding: 6px 12px 6px 10px;
+    cursor: pointer;
+    clip-path: polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 0 100%);
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    user-select: none;
+  }
+  .chip:hover { border-color: var(--steel-soft); }
+  .chip.active {
+    background: var(--amber);
+    border-color: var(--amber);
+    color: #1C1204;
+    font-weight: 600;
+  }
+  .chip.all { color: var(--steel-soft); }
+  .chip.all.active { background: var(--steel); border-color: var(--steel); color: var(--ink); }
+
+  .rail-footer {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .conn-status {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--steel-soft);
+  }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--steel-soft); }
+  .conn-dot.ok { background: var(--sage); }
+  .conn-dot.err { background: var(--rust); }
+  .settings-btn {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--steel-soft);
+    border: 1px solid var(--line-dark);
+    padding: 7px 10px;
+    text-align: center;
+  }
+  .settings-btn:hover { color: var(--paper); border-color: var(--steel-soft); }
+
+  /* ---------- Main ---------- */
+  .main {
+    flex: 1;
+    background: var(--paper);
+    color: var(--ink);
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 28px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar h2 {
+    font-family: var(--font-display);
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+  }
+  .topbar .sub {
+    font-family: var(--font-mono);
+    font-size: 11.5px;
+    color: var(--steel);
+    margin-top: 3px;
+  }
+
+  .btn {
+    font-family: var(--font-body);
+    font-weight: 600;
+    font-size: 13px;
+    border: none;
+    cursor: pointer;
+    padding: 10px 18px;
+    border-radius: 2px;
+  }
+  .btn-primary { background: var(--amber); color: #1C1204; }
+  .btn-primary:hover { background: var(--amber-deep); }
+  .btn-ghost { background: transparent; border: 1px solid var(--steel); color: var(--steel); }
+  .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
+
+  .summary-strip {
+    display: flex;
+    gap: 0;
+    margin: 18px 28px 0;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+  .stub {
+    flex: 1;
+    padding: 12px 18px;
+    border-right: 1px dashed var(--line);
+  }
+  .stub:last-child { border-right: none; }
+  .stub .num {
+    font-family: var(--font-mono);
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .stub .lbl {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--steel);
+    margin-top: 2px;
+  }
+
+  .table-wrap {
+    flex: 1;
+    margin: 16px 28px 28px;
+    overflow: auto;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    position: sticky; top: 0;
+    background: var(--paper-2);
+    text-align: left;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--steel);
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  thead th:hover { color: var(--ink); }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    vertical-align: top;
+  }
+  tbody tr:hover { background: #FBF9F4; }
+  td.mono, .mono { font-family: var(--font-mono); }
+  td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  .badge {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    padding: 3px 8px;
+    border-radius: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .badge-inquired { background: #EDE9DE; color: var(--steel); }
+  .badge-booked { background: #E7F0E4; color: var(--sage); }
+  .badge-confirmed { background: #E1F0E9; color: #3E7A5C; }
+  .badge-completed { background: #E8E5DD; color: #6B6455; }
+  .badge-cancelled { background: #F5E4DE; color: var(--rust); }
+  .badge-disputed { background: #F9DEDE; color: #A83A3A; }
+
+  .row-actions { white-space: nowrap; }
+  .row-actions button {
+    all: unset;
+    cursor: pointer;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--steel);
+    margin-right: 10px;
+  }
+  .row-actions button:hover { color: var(--ink); text-decoration: underline; }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--steel);
+  }
+  .empty-state .tag {
+    display: inline-block;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--amber-deep);
+    margin-bottom: 8px;
+  }
+
+  /* ---------- Modal ---------- */
+  .overlay {
+    position: fixed; inset: 0;
+    background: rgba(28,43,57,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--paper);
+    color: var(--ink);
+    width: 100%;
+    max-width: 520px;
+    max-height: 90vh;
+    overflow-y: auto;
+    border: 1px solid var(--line);
+    padding: 24px;
+  }
+  .modal h3 {
+    font-family: var(--font-display);
+    font-size: 17px;
+    margin: 0 0 18px;
+  }
+  .form-row { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
+  .form-row label {
+    font-family: var(--font-mono);
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--steel);
+  }
+  .form-row input, .form-row select, .form-row textarea {
+    font-family: var(--font-body);
+    font-size: 13.5px;
+    padding: 9px 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+    color: var(--ink);
+  }
+  .form-row textarea { resize: vertical; min-height: 60px; }
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .modal-actions {
+    display: flex; justify-content: flex-end; gap: 10px;
+    margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line);
+  }
+  .modal-danger {
+    margin-right: auto;
+    background: transparent; border: none;
+    color: var(--rust); font-family: var(--font-mono); font-size: 11.5px;
+    cursor: pointer;
+  }
+
+  .settings-body p { font-size: 13px; line-height: 1.5; color: var(--steel); }
+  .settings-body code {
+    background: var(--paper-2); padding: 1px 5px; font-family: var(--font-mono); font-size: 12px;
+  }
+
+  /* mobile */
+  @media (max-width: 780px) {
+    .app { flex-direction: column; }
+    .rail { width: auto; flex-direction: row; flex-wrap: wrap; gap: 14px; align-items: flex-start; }
+    .rail-footer { margin-top: 0; flex-direction: row; margin-left: auto; }
+    .brand { width: 100%; }
+    .filter-group { min-width: 140px; }
+    .topbar { flex-direction: column; align-items: flex-start; gap: 10px; }
+    .summary-strip { flex-wrap: wrap; margin: 14px 14px 0; }
+    .stub { min-width: 45%; border-bottom: 1px dashed var(--line); }
+    .table-wrap { margin: 14px; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- FILTER RAIL -->
+  <div class="rail">
+    <div class="brand">
+      <div class="eyebrow">Discovery Place · Group Sales</div>
+      <h1>Guest Tracker</h1>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        <span>Rep · 01</span>
+        <button class="manage" data-manage="Rep">edit</button>
+      </div>
+      <div class="chip-list" id="chips-rep"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        <span>Program · 02</span>
+        <button class="manage" data-manage="ProgramType">edit</button>
+      </div>
+      <div class="chip-list" id="chips-program"></div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-label">
+        <span>Location · 03</span>
+      </div>
+      <div class="chip-list" id="chips-location"></div>
+    </div>
+
+    <div class="rail-footer">
+      <div class="conn-status"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">Not connected</span></div>
+      <button class="settings-btn" id="open-settings">Settings</button>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div>
+        <h2 id="view-title">All records</h2>
+        <div class="sub" id="view-sub">rep: all · program: all · location: all</div>
+      </div>
+      <button class="btn btn-primary" id="new-record-btn">+ New record</button>
+    </div>
+
+    <div class="summary-strip">
+      <div class="stub"><div class="num" id="sum-count">0</div><div class="lbl">Records shown</div></div>
+      <div class="stub"><div class="num" id="sum-headcount">0</div><div class="lbl">Total headcount</div></div>
+      <div class="stub"><div class="num" id="sum-amount">$0</div><div class="lbl">Total amount</div></div>
+    </div>
+
+    <div class="table-wrap">
+      <table id="records-table">
+        <thead>
+          <tr>
+            <th data-sort="GuestName">Guest / School</th>
+            <th data-sort="Status">Status</th>
+            <th data-sort="EventDate">Event date</th>
+            <th data-sort="Rep">Rep</th>
+            <th data-sort="ProgramType">Program</th>
+            <th data-sort="Location">Location</th>
+            <th data-sort="Headcount">Headcount</th>
+            <th data-sort="Amount">Amount</th>
+            <th>Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="records-tbody"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state" style="display:none;">
+        <div class="tag">No records match</div>
+        <div>Try widening the filters on the left, or add a new record.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RECORD MODAL -->
+<div class="overlay" id="record-overlay">
+  <div class="modal">
+    <h3 id="record-modal-title">New record</h3>
+    <input type="hidden" id="f-id">
+    <div class="form-grid">
+      <div class="form-row">
+        <label>Guest / school name</label>
+        <input type="text" id="f-guest" placeholder="e.g. Eastway Middle School">
+      </div>
+      <div class="form-row">
+        <label>Status</label>
+        <select id="f-status">
+          <option>Inquired</option>
+          <option>Booked</option>
+          <option>Confirmed</option>
+          <option>Completed</option>
+          <option>Cancelled</option>
+          <option>Disputed</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Rep</label>
+        <select id="f-rep"></select>
+      </div>
+      <div class="form-row">
+        <label>Program type</label>
+        <select id="f-program"></select>
+      </div>
+      <div class="form-row">
+        <label>Location</label>
+        <select id="f-location">
+          <option>DPS</option>
+          <option>DPKH</option>
+          <option>DPKR</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Event date</label>
+        <input type="date" id="f-eventdate">
+      </div>
+      <div class="form-row">
+        <label>Inquiry date</label>
+        <input type="date" id="f-inquirydate">
+      </div>
+      <div class="form-row">
+        <label>Headcount</label>
+        <input type="number" id="f-headcount" min="0" placeholder="0">
+      </div>
+      <div class="form-row">
+        <label>Amount ($)</label>
+        <input type="number" id="f-amount" min="0" step="0.01" placeholder="0.00">
+      </div>
+    </div>
+    <div class="form-row">
+      <label>Notes</label>
+      <textarea id="f-notes" placeholder="Anything worth remembering next time..."></textarea>
+    </div>
+    <div class="modal-actions">
+      <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete record</button>
+      <button class="btn btn-ghost" id="cancel-record-btn">Cancel</button>
+      <button class="btn btn-primary" id="save-record-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS MODAL -->
+<div class="overlay" id="settings-overlay">
+  <div class="modal">
+    <h3>Settings</h3>
+    <div class="settings-body">
+      <div class="form-row">
+        <label>Apps Script web app URL</label>
+        <input type="text" id="f-script-url" placeholder="https://script.google.com/macros/s/.../exec">
+      </div>
+      <p>Paste the URL you got from <strong>Deploy &rarr; New deployment &rarr; Web app</strong> in your Google Sheet's Apps Script editor. This is stored only in this browser, not shared with anyone.</p>
+      <p>Every device that opens this page needs the same URL pasted in once. Since it points at the same Sheet, everyone's records show up everywhere.</p>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="close-settings-btn">Close</button>
+      <button class="btn btn-primary" id="save-settings-btn">Save & reconnect</button>
+    </div>
+  </div>
+</div>
+
+<!-- MANAGE LIST MODAL (reps / program types) -->
+<div class="overlay" id="manage-overlay">
+  <div class="modal">
+    <h3 id="manage-title">Edit list</h3>
+    <div class="settings-body">
+      <p>One per line.</p>
+      <div class="form-row">
+        <textarea id="manage-textarea" style="min-height:140px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="close-manage-btn">Cancel</button>
+      <button class="btn btn-primary" id="save-manage-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ---------- Local config (per-device, not shared) ----------
+  const LS_URL_KEY = 'gst_script_url';
+  const LS_REPS_KEY = 'gst_reps';
+  const LS_PROGRAMS_KEY = 'gst_programs';
+
+  const DEFAULT_REPS = ['Corey', 'Jeremy'];
+  const DEFAULT_PROGRAMS = ['Field Trip', 'Birthday', 'Camp', 'Outreach', 'IMAX'];
+  const LOCATIONS = ['DPS', 'DPKH', 'DPKR'];
+
+  let scriptUrl = localStorage.getItem(LS_URL_KEY) || '';
+  let repList = JSON.parse(localStorage.getItem(LS_REPS_KEY) || 'null') || DEFAULT_REPS.slice();
+  let programList = JSON.parse(localStorage.getItem(LS_PROGRAMS_KEY) || 'null') || DEFAULT_PROGRAMS.slice();
+
+  let allRecords = [];
+  let filters = { Rep: 'all', ProgramType: 'all', Location: 'all' };
+  let sortKey = 'EventDate';
+  let sortDir = 'asc';
+
+  // ---------- Elements ----------
+  const el = id => document.getElementById(id);
+  const chipsRep = el('chips-rep');
+  const chipsProgram = el('chips-program');
+  const chipsLocation = el('chips-location');
+  const connDot = el('conn-dot');
+  const connText = el('conn-text');
+
+  function renderChipGroup(container, values, filterKey) {
+    container.innerHTML = '';
+    const allChip = document.createElement('div');
+    allChip.className = 'chip all' + (filters[filterKey] === 'all' ? ' active' : '');
+    allChip.textContent = 'All';
+    allChip.onclick = () => { filters[filterKey] = 'all'; renderAll(); };
+    container.appendChild(allChip);
+
+    values.forEach(v => {
+      const chip = document.createElement('div');
+      chip.className = 'chip' + (filters[filterKey] === v ? ' active' : '');
+      chip.textContent = v;
+      chip.onclick = () => { filters[filterKey] = v; renderAll(); };
+      container.appendChild(chip);
+    });
+  }
+
+  function populateSelect(sel, values) {
+    sel.innerHTML = '';
+    values.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = v; opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
+
+  function renderFilterChips() {
+    renderChipGroup(chipsRep, repList, 'Rep');
+    renderChipGroup(chipsProgram, programList, 'ProgramType');
+    renderChipGroup(chipsLocation, LOCATIONS, 'Location');
+    populateSelect(el('f-rep'), repList);
+    populateSelect(el('f-program'), programList);
+  }
+
+  function fmtMoney(n) {
+    const num = Number(n) || 0;
+    return '$' + num.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function badgeClass(status) {
+    return 'badge badge-' + (status || 'inquired').toLowerCase();
+  }
+
+  function getFiltered() {
+    return allRecords.filter(r =>
+      (filters.Rep === 'all' || r.Rep === filters.Rep) &&
+      (filters.ProgramType === 'all' || r.ProgramType === filters.ProgramType) &&
+      (filters.Location === 'all' || r.Location === filters.Location)
+    );
+  }
+
+  function renderTable() {
+    let rows = getFiltered();
+
+    rows.sort((a, b) => {
+      let av = a[sortKey], bv = b[sortKey];
+      if (sortKey === 'Amount' || sortKey === 'Headcount') { av = Number(av)||0; bv = Number(bv)||0; }
+      else { av = (av || '').toString(); bv = (bv || '').toString(); }
+      if (av < bv) return sortDir === 'asc' ? -1 : 1;
+      if (av > bv) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    const tbody = el('records-tbody');
+    tbody.innerHTML = '';
+    el('empty-state').style.display = rows.length ? 'none' : 'block';
+
+    rows.forEach(r => {
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td>${escapeHtml(r.GuestName || '—')}</td>
+        <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
+        <td class="mono">${escapeHtml(r.EventDate || '—')}</td>
+        <td>${escapeHtml(r.Rep || '—')}</td>
+        <td>${escapeHtml(r.ProgramType || '—')}</td>
+        <td>${escapeHtml(r.Location || '—')}</td>
+        <td class="mono">${r.Headcount || 0}</td>
+        <td class="mono">${fmtMoney(r.Amount)}</td>
+        <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
+        <td class="row-actions">
+          <button data-edit="${r.ID}">Edit</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+
+    tbody.querySelectorAll('[data-edit]').forEach(btn => {
+      btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
+    });
+
+    // summary strip
+    el('sum-count').textContent = rows.length;
+    el('sum-headcount').textContent = rows.reduce((s, r) => s + (Number(r.Headcount) || 0), 0).toLocaleString();
+    el('sum-amount').textContent = fmtMoney(rows.reduce((s, r) => s + (Number(r.Amount) || 0), 0));
+
+    el('view-title').textContent = filters.ProgramType === 'all' ? 'All records' : filters.ProgramType + ' records';
+    el('view-sub').textContent = `rep: ${filters.Rep} · program: ${filters.ProgramType} · location: ${filters.Location}`;
+  }
+
+  function escapeHtml(str) {
+    return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderAll() {
+    renderFilterChips();
+    renderTable();
+  }
+
+  // ---------- Sorting ----------
+  document.querySelectorAll('th[data-sort]').forEach(th => {
+    th.onclick = () => {
+      const key = th.dataset.sort;
+      if (sortKey === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+      else { sortKey = key; sortDir = 'asc'; }
+      renderTable();
+    };
+  });
+
+  // ---------- API ----------
+  async function apiGet() {
+    if (!scriptUrl) { setConn(false, 'No script URL set'); return; }
+    setConn(null, 'Loading…');
+    try {
+      const res = await fetch(scriptUrl, { method: 'GET' });
+      const data = await res.json();
+      allRecords = Array.isArray(data) ? data : [];
+      setConn(true, `Connected · ${allRecords.length} records`);
+      renderAll();
+    } catch (err) {
+      setConn(false, 'Connection failed');
+      console.error(err);
+    }
+  }
+
+  async function apiPost(payload) {
+    // text/plain avoids a CORS preflight against Apps Script
+    const res = await fetch(scriptUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    return res.json();
+  }
+
+  function setConn(ok, text) {
+    connText.textContent = text;
+    connDot.className = 'conn-dot' + (ok === true ? ' ok' : ok === false ? ' err' : '');
+  }
+
+  // ---------- Record modal ----------
+  const recordOverlay = el('record-overlay');
+  function openRecordModal(record) {
+    el('record-modal-title').textContent = record ? 'Edit record' : 'New record';
+    el('delete-record-btn').style.display = record ? 'inline-block' : 'none';
+    el('f-id').value = record ? record.ID : '';
+    el('f-guest').value = record ? record.GuestName || '' : '';
+    el('f-status').value = record ? record.Status || 'Inquired' : 'Inquired';
+    el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep !== 'all' ? filters.Rep : repList[0]);
+    el('f-program').value = record ? record.ProgramType || programList[0] : (filters.ProgramType !== 'all' ? filters.ProgramType : programList[0]);
+    el('f-location').value = record ? record.Location || 'DPS' : (filters.Location !== 'all' ? filters.Location : 'DPS');
+    el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';
+    el('f-inquirydate').value = record ? toDateInput(record.InquiryDate) : '';
+    el('f-headcount').value = record ? record.Headcount || '' : '';
+    el('f-amount').value = record ? record.Amount || '' : '';
+    el('f-notes').value = record ? record.Notes || '' : '';
+    recordOverlay.classList.add('open');
+  }
+  function toDateInput(val) {
+    if (!val) return '';
+    const d = new Date(val);
+    if (isNaN(d)) return '';
+    return d.toISOString().slice(0,10);
+  }
+  function closeRecordModal() { recordOverlay.classList.remove('open'); }
+
+  el('new-record-btn').onclick = () => openRecordModal(null);
+  el('cancel-record-btn').onclick = closeRecordModal;
+
+  el('save-record-btn').onclick = async () => {
+    const id = el('f-id').value;
+    const record = {
+      ID: id || undefined,
+      GuestName: el('f-guest').value.trim(),
+      Status: el('f-status').value,
+      Rep: el('f-rep').value,
+      ProgramType: el('f-program').value,
+      Location: el('f-location').value,
+      EventDate: el('f-eventdate').value,
+      InquiryDate: el('f-inquirydate').value,
+      Headcount: el('f-headcount').value,
+      Amount: el('f-amount').value,
+      Notes: el('f-notes').value.trim()
+    };
+    if (!record.GuestName) { alert('Guest / school name is required.'); return; }
+
+    el('save-record-btn').textContent = 'Saving…';
+    try {
+      if (id) await apiPost({ action: 'update', record });
+      else await apiPost({ action: 'add', record });
+      closeRecordModal();
+      await apiGet();
+    } catch (err) {
+      alert('Could not save. Check your connection in Settings.');
+      console.error(err);
+    } finally {
+      el('save-record-btn').textContent = 'Save';
+    }
+  };
+
+  el('delete-record-btn').onclick = async () => {
+    const id = el('f-id').value;
+    if (!id) return;
+    if (!confirm('Delete this record? This cannot be undone.')) return;
+    try {
+      await apiPost({ action: 'delete', id });
+      closeRecordModal();
+      await apiGet();
+    } catch (err) {
+      alert('Could not delete. Check your connection in Settings.');
+    }
+  };
+
+  // ---------- Settings modal ----------
+  const settingsOverlay = el('settings-overlay');
+  el('open-settings').onclick = () => {
+    el('f-script-url').value = scriptUrl;
+    settingsOverlay.classList.add('open');
+  };
+  el('close-settings-btn').onclick = () => settingsOverlay.classList.remove('open');
+  el('save-settings-btn').onclick = () => {
+    scriptUrl = el('f-script-url').value.trim();
+    localStorage.setItem(LS_URL_KEY, scriptUrl);
+    settingsOverlay.classList.remove('open');
+    apiGet();
+  };
+
+  // ---------- Manage rep / program lists ----------
+  const manageOverlay = el('manage-overlay');
+  let managingKey = null;
+  document.querySelectorAll('[data-manage]').forEach(btn => {
+    btn.onclick = () => {
+      managingKey = btn.dataset.manage;
+      el('manage-title').textContent = managingKey === 'Rep' ? 'Edit rep list' : 'Edit program types';
+      el('manage-textarea').value = (managingKey === 'Rep' ? repList : programList).join('\n');
+      manageOverlay.classList.add('open');
+    };
+  });
+  el('close-manage-btn').onclick = () => manageOverlay.classList.remove('open');
+  el('save-manage-btn').onclick = () => {
+    const values = el('manage-textarea').value.split('\n').map(s => s.trim()).filter(Boolean);
+    if (!values.length) { alert('List needs at least one entry.'); return; }
+    if (managingKey === 'Rep') { repList = values; localStorage.setItem(LS_REPS_KEY, JSON.stringify(repList)); }
+    else { programList = values; localStorage.setItem(LS_PROGRAMS_KEY, JSON.stringify(programList)); }
+    manageOverlay.classList.remove('open');
+    renderAll();
+  };
+
+  // ---------- Init ----------
+  renderFilterChips();
+  renderTable();
+  if (scriptUrl) apiGet();
+  else setConn(false, 'Set your Apps Script URL in Settings');
+</script>
+
+</body>
+</html>

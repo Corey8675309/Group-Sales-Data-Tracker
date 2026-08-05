@@ -15,8 +15,8 @@
     --paper-2: #F2F5F6;
     --steel: #5B6770;
     --steel-soft: #94A0A6;
-    --teal: #1497A6;
-    --teal-deep: #0D7783;
+    --teal: #00AEEF;
+    --teal-deep: #0090C7;
     --teal-bright: #00AEEF;
     --sage: #2E9B6D;
     --gold: #E0973D;
@@ -177,10 +177,10 @@
     padding: 5px 13px; border-radius: 999px; text-align: center;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  .row-actions button.view-link { border: 1px solid var(--steel); color: var(--steel); }
-  .row-actions button.view-link:hover { border-color: var(--ink); color: var(--ink); }
-  .row-actions button.edit-link { background: var(--teal); color: #fff; }
-  .row-actions button.edit-link:hover { background: var(--teal-deep); }
+  .row-actions button.view-link { background: var(--teal); color: #fff; }
+  .row-actions button.view-link:hover { background: var(--teal-deep); }
+  .row-actions button.edit-link { border: 1px solid var(--steel); color: var(--steel); }
+  .row-actions button.edit-link:hover { border-color: var(--ink); color: var(--ink); }
 
   .empty-state { padding: 60px 20px; text-align: center; color: var(--steel); }
   .empty-state .tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 8px; }
@@ -274,7 +274,7 @@
 
     <div class="filter-group">
       <div class="filter-label">
-        <span>Rep · 02</span>
+        <span>Team Member · 02</span>
         <button class="manage" id="manage-reps-btn">edit</button>
       </div>
       <div class="chip-list" id="chips-rep"></div>
@@ -299,10 +299,10 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2 id="view-title">All records</h2>
-        <div class="sub" id="view-sub">program: all · rep: all · status: all · location: all</div>
+        <h2 id="view-title">All entries</h2>
+        <div class="sub" id="view-sub">program: all · team member: all · status: all · location: all</div>
       </div>
-      <button class="btn btn-primary" id="new-record-btn">+ New record</button>
+      <button class="btn btn-primary" id="new-record-btn">+ New entry</button>
     </div>
 
     <div class="date-filters">
@@ -325,7 +325,7 @@
       <button class="btn btn-ghost btn-small" id="clear-dates-btn">Clear dates</button>
     </div>
 
-    <div class="summary-line" id="summary-line">0 records shown</div>
+    <div class="summary-line" id="summary-line">0 entries shown</div>
 
     <div class="table-wrap">
       <table id="records-table">
@@ -333,7 +333,7 @@
           <tr>
             <th class="status-tab-col"></th>
             <th data-sort="ProgramType">Program</th>
-            <th data-sort="Rep">Rep</th>
+            <th data-sort="Rep">Team Member</th>
             <th data-sort="Status">Status</th>
             <th data-sort="Location">Location</th>
             <th data-sort="GuestName">Guest / Org</th>
@@ -346,7 +346,7 @@
         <tbody id="records-tbody"></tbody>
       </table>
       <div class="empty-state" id="empty-state" style="display:none;">
-        <div class="tag">No records match</div>
+        <div class="tag">No entries match</div>
         <div>Try widening the filters on the left, or add a new record.</div>
       </div>
     </div>
@@ -356,7 +356,7 @@
 <!-- TYPE PICKER MODAL -->
 <div class="overlay" id="type-overlay">
   <div class="modal">
-    <h3>New record</h3>
+    <h3>New entry</h3>
     <div class="modal-kicker">Step 1 of 2 — what kind of program is this?</div>
     <div class="type-picker" id="type-picker-list"></div>
     <div class="modal-actions">
@@ -368,7 +368,7 @@
 <!-- RECORD MODAL -->
 <div class="overlay" id="record-overlay">
   <div class="modal">
-    <h3 id="record-modal-title">New record</h3>
+    <h3 id="record-modal-title">New entry</h3>
     <div class="modal-kicker" id="record-modal-kicker"></div>
     <input type="hidden" id="f-id">
     <input type="hidden" id="f-programtype">
@@ -389,7 +389,7 @@
         </select>
       </div>
       <div class="form-row">
-        <label>Rep</label>
+        <label>Team member</label>
         <select id="f-rep"></select>
       </div>
       <div class="form-row">
@@ -419,7 +419,7 @@
     </div>
 
     <div class="modal-actions">
-      <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete record</button>
+      <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete entry</button>
       <button class="btn btn-ghost" id="cancel-record-btn">Cancel</button>
       <button class="btn btn-primary" id="save-record-btn">Save</button>
     </div>
@@ -431,7 +431,7 @@
   <div class="modal">
     <div class="view-header-row">
       <div>
-        <h3 id="view-modal-title">Record</h3>
+        <h3 id="view-modal-title">Entry</h3>
         <div class="modal-kicker" id="view-modal-kicker"></div>
       </div>
     </div>
@@ -465,7 +465,7 @@
 <!-- MANAGE REPS MODAL -->
 <div class="overlay" id="manage-overlay">
   <div class="modal">
-    <h3>Edit rep list</h3>
+    <h3>Edit team member list</h3>
     <div class="settings-body">
       <p>One per line.</p>
       <div class="form-row"><textarea id="manage-textarea" style="min-height:140px;"></textarea></div>
@@ -722,10 +722,10 @@
       btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
     });
 
-    el('summary-line').innerHTML = `<strong>${rows.length}</strong> record${rows.length === 1 ? '' : 's'} shown`;
+    el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
 
-    el('view-title').textContent = filters.ProgramType === 'all' ? 'All records' : filters.ProgramType + ' records';
-    el('view-sub').textContent = `program: ${filters.ProgramType} · rep: ${filters.Rep} · status: ${filters.Status} · location: ${filters.Location}`;
+    el('view-title').textContent = filters.ProgramType === 'all' ? 'All entries' : filters.ProgramType + ' entries';
+    el('view-sub').textContent = `program: ${filters.ProgramType} · team member: ${filters.Rep} · status: ${filters.Status} · location: ${filters.Location}`;
   }
 
   function renderAll() { renderFilterChips(); renderTable(); }
@@ -747,7 +747,7 @@
       const res = await fetch(scriptUrl, { method: 'GET' });
       const data = await res.json();
       allRecords = Array.isArray(data) ? data : [];
-      setConn(true, `Connected · ${allRecords.length} records`);
+      setConn(true, `Connected · ${allRecords.length} entries`);
       renderAll();
     } catch (err) {
       setConn(false, 'Connection failed');
@@ -817,7 +817,7 @@
 
   function openRecordModal(record, forcedType) {
     const type = record ? record.ProgramType : forcedType;
-    el('record-modal-title').textContent = record ? 'Edit record' : 'New record';
+    el('record-modal-title').textContent = record ? 'Edit entry' : 'New entry';
     el('record-modal-kicker').textContent = type;
     el('delete-record-btn').style.display = record ? 'inline-block' : 'none';
 
@@ -885,7 +885,7 @@
   el('delete-record-btn').onclick = async () => {
     const id = el('f-id').value;
     if (!id) return;
-    if (!confirm('Delete this record? This cannot be undone.')) return;
+    if (!confirm('Delete this entry? This cannot be undone.')) return;
     try {
       await apiPost({ action: 'delete', id });
       closeRecordModal();
@@ -911,7 +911,7 @@
     if (!record) return;
     viewingRecord = record;
     const type = record.ProgramType;
-    el('view-modal-title').textContent = record.GuestName || 'Record';
+    el('view-modal-title').textContent = record.GuestName || 'Entry';
     el('view-modal-kicker').textContent = type;
 
     let html = '<div class="view-section-title">Overview</div><div class="view-grid">';

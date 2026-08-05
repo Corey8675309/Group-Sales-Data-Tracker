@@ -36,6 +36,7 @@
     --badge-green: #21875C;
     --badge-red: #C93B2E;
     --badge-neutral: #5B6770;
+    --badge-teal: #0D7F99;
     --line: #E1E6E8;
     --line-dark: #40454B;
     --font-display: 'Poppins', sans-serif;
@@ -69,10 +70,12 @@
     --badge-green: #5BC98F;
     --badge-red: #F0776B;
     --badge-neutral: #B7C0C6;
+    --badge-teal: #4FD1E8;
   }
   :root[data-theme="dark"] .badge-not-reached,
   :root[data-theme="dark"] .badge-voicemail-email-left { background: #34383C; }
   :root[data-theme="dark"] .badge-pending-booking { background: #3A2E22; }
+  :root[data-theme="dark"] .badge-to-be-booked { background: #1E2E31; }
   :root[data-theme="dark"] .badge-booked { background: #232A38; }
   :root[data-theme="dark"] .badge-paid { background: #1E2B24; }
   :root[data-theme="dark"] .badge-cancelled { background: #322323; }
@@ -204,6 +207,7 @@
   .badge-not-reached { background: #ECEEF0; color: var(--badge-neutral); }
   .badge-voicemail-email-left { background: #ECEEF0; color: var(--badge-neutral); }
   .badge-pending-booking { background: #F7E7DC; color: var(--badge-orange); }
+  .badge-to-be-booked { background: #DCF3F7; color: var(--badge-teal); }
   .badge-booked { background: #E4ECFB; color: var(--badge-blue); }
   .badge-paid { background: #E1F3EA; color: var(--badge-green); }
   .badge-cancelled { background: #FAE1DE; color: var(--badge-red); }
@@ -424,6 +428,7 @@
         <select id="f-status">
           <option>Voicemail/Email Left</option>
           <option>Pending Booking</option>
+          <option>To Be Booked</option>
           <option>Booked</option>
           <option>Paid</option>
           <option>Cancelled</option>
@@ -600,10 +605,11 @@
 
   const el = id => document.getElementById(id);
 
-  const STATUSES = ['Voicemail/Email Left', 'Pending Booking', 'Booked', 'Paid', 'Cancelled'];
+  const STATUSES = ['Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
   const STATUS_COLORS = {
     'Voicemail/Email Left': null, // white / no color, per request
     'Pending Booking': 'var(--clr-orange)',
+    'To Be Booked': 'var(--teal)',
     'Booked': 'var(--clr-blue)',
     'Paid': 'var(--sage)',
     'Cancelled': 'var(--clr-red)'

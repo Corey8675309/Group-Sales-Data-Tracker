@@ -28,6 +28,14 @@
     --clr-red: #D9483C;
     --neutral: #8B96A0;
     --on-dark: #FFFFFF;
+    /* Dedicated badge text colors — tuned separately from the shared accent
+       colors used for chips/tabs, so badge legibility can be adjusted without
+       affecting those. */
+    --badge-blue: #2E63C7;
+    --badge-orange: #A84D1A;
+    --badge-green: #21875C;
+    --badge-red: #C93B2E;
+    --badge-neutral: #5B6770;
     --line: #E1E6E8;
     --line-dark: #40454B;
     --font-display: 'Poppins', sans-serif;
@@ -53,7 +61,18 @@
     --steel: #A7AFB5;
     --steel-soft: #6C7479;
     --line: #33393D;
+    --badge-blue: #7FB0FF;
+    --badge-orange: #E3924F;
+    --badge-green: #5BC98F;
+    --badge-red: #F0776B;
+    --badge-neutral: #B7C0C6;
   }
+  :root[data-theme="dark"] .badge-not-reached,
+  :root[data-theme="dark"] .badge-voicemail-email-left { background: #34383C; }
+  :root[data-theme="dark"] .badge-pending-booking { background: #3A2E22; }
+  :root[data-theme="dark"] .badge-booked { background: #232A38; }
+  :root[data-theme="dark"] .badge-paid { background: #1E2B24; }
+  :root[data-theme="dark"] .badge-cancelled { background: #322323; }
   :root[data-theme="dark"] .type-option:hover { background: #1D2C30; }
   :root[data-theme="dark"] tbody tr:hover { background: #182226; }
   :root[data-theme="dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -178,13 +197,13 @@
   td.mono, .mono { font-family: var(--font-mono); }
   td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .badge-not-reached { background: #ECEEF0; color: var(--neutral); }
-  .badge-voicemail-email-left { background: #ECEEF0; color: var(--neutral); }
-  .badge-pending-booking { background: #F7E7DC; color: var(--clr-orange); }
-  .badge-booked { background: #E4ECFB; color: var(--clr-blue); }
-  .badge-paid { background: #E1F3EA; color: var(--sage); }
-  .badge-cancelled { background: #FAE1DE; color: var(--clr-red); }
+  .badge { display: inline-block; font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .badge-not-reached { background: #ECEEF0; color: var(--badge-neutral); }
+  .badge-voicemail-email-left { background: #ECEEF0; color: var(--badge-neutral); }
+  .badge-pending-booking { background: #F7E7DC; color: var(--badge-orange); }
+  .badge-booked { background: #E4ECFB; color: var(--badge-blue); }
+  .badge-paid { background: #E1F3EA; color: var(--badge-green); }
+  .badge-cancelled { background: #FAE1DE; color: var(--badge-red); }
 
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
 

@@ -19,6 +19,7 @@
     --teal-deep: #0D7783;
     --teal-bright: #00AEEF;
     --sage: #2E9B6D;
+    --gold: #E0973D;
     --rust: #D6553F;
     --line: #E1E6E8;
     --line-dark: #40454B;
@@ -119,6 +120,21 @@
   }
   .summary-line strong { color: var(--ink); font-weight: 600; }
 
+  .date-filters {
+    display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap;
+    margin: 18px 28px 0; padding-bottom: 14px; border-bottom: 1px solid var(--line);
+  }
+  .date-filter-group { display: flex; flex-direction: column; gap: 5px; }
+  .date-filter-group label {
+    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel);
+  }
+  .date-filter-row { display: flex; align-items: center; gap: 6px; }
+  .date-filter-row input[type=date] {
+    font-family: var(--font-body); font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--line); background: #fff; color: var(--ink);
+  }
+  .date-filter-row .sep { color: var(--steel-soft); font-size: 12px; }
+  .btn-small { padding: 6px 14px; font-size: 12px; }
+
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: #fff; }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
@@ -136,11 +152,19 @@
   .badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge-not-reached { background: #ECEEF0; color: var(--steel); }
   .badge-voicemail-email-left { background: #E4F6F9; color: var(--teal-deep); }
+  .badge-pending-booking { background: #FBF0DE; color: var(--gold); }
   .badge-booked { background: #E7F0E4; color: var(--sage); }
-  .badge-paid { background: #E1F0E9; color: #3E7A5C; }
+  .badge-paid { background: #E0F3FA; color: var(--teal-bright); }
   .badge-cancelled { background: #F5E4DE; color: var(--rust); }
 
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
+
+  .status-tab-col { width: 0; padding: 0 !important; }
+  .status-tab {
+    width: 7px; height: 100%; min-height: 38px;
+    border-radius: 0 4px 4px 0;
+    margin-left: -1px;
+  }
 
   .row-actions { white-space: nowrap; }
   .row-actions button {
@@ -273,12 +297,33 @@
       <button class="btn btn-primary" id="new-record-btn">+ New record</button>
     </div>
 
+    <div class="date-filters">
+      <div class="date-filter-group">
+        <label>Date inquired / spoken to</label>
+        <div class="date-filter-row">
+          <input type="date" id="filter-inquiry-from">
+          <span class="sep">–</span>
+          <input type="date" id="filter-inquiry-to">
+        </div>
+      </div>
+      <div class="date-filter-group">
+        <label>Event date</label>
+        <div class="date-filter-row">
+          <input type="date" id="filter-event-from">
+          <span class="sep">–</span>
+          <input type="date" id="filter-event-to">
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-small" id="clear-dates-btn">Clear dates</button>
+    </div>
+
     <div class="summary-line" id="summary-line">0 records shown</div>
 
     <div class="table-wrap">
       <table id="records-table">
         <thead>
           <tr>
+            <th class="status-tab-col"></th>
             <th data-sort="ProgramType">Program</th>
             <th data-sort="Rep">Rep</th>
             <th data-sort="Status">Status</th>
@@ -328,8 +373,8 @@
       <div class="form-row">
         <label>Status</label>
         <select id="f-status">
-          <option>Not Reached</option>
           <option>Voicemail/Email Left</option>
+          <option>Pending Booking</option>
           <option>Booked</option>
           <option>Paid</option>
           <option>Cancelled</option>
@@ -496,14 +541,24 @@
   let repList = JSON.parse(localStorage.getItem(LS_REPS_KEY) || 'null') || DEFAULT_REPS.slice();
 
   let allRecords = [];
-  let filters = { ProgramType: 'all', Rep: 'all', Status: 'all', Location: 'all' };
+  let filters = {
+    ProgramType: 'all', Rep: 'all', Status: 'all', Location: 'all',
+    InquiryFrom: '', InquiryTo: '', EventFrom: '', EventTo: ''
+  };
   let sortKey = 'EventDate';
   let sortDir = 'asc';
   let pendingType = null; // set when creating a new record, after type picker
 
   const el = id => document.getElementById(id);
 
-  const STATUSES = ['Not Reached', 'Voicemail/Email Left', 'Booked', 'Paid', 'Cancelled'];
+  const STATUSES = ['Voicemail/Email Left', 'Pending Booking', 'Booked', 'Paid', 'Cancelled'];
+  const STATUS_COLORS = {
+    'Voicemail/Email Left': 'var(--teal-deep)',
+    'Pending Booking': 'var(--gold)',
+    'Booked': 'var(--sage)',
+    'Paid': 'var(--teal-bright)',
+    'Cancelled': 'var(--rust)'
+  };
 
   function computeHeadcount(record) {
     const type = record.ProgramType;
@@ -554,7 +609,7 @@
   function slug(s) {
     return String(s || '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
   }
-  function badgeClass(status) { return 'badge badge-' + slug(status || 'not reached'); }
+  function badgeClass(status) { return 'badge badge-' + slug(status || 'voicemail-email-left'); }
 
   // Sheet dates arrive as full ISO datetimes (e.g. "2026-09-30T04:00:00.000Z");
   // display just the calendar date, in local terms, no time component.
@@ -573,8 +628,21 @@
       (filters.ProgramType === 'all' || r.ProgramType === filters.ProgramType) &&
       (filters.Rep === 'all' || r.Rep === filters.Rep) &&
       (filters.Status === 'all' || r.Status === filters.Status) &&
-      (filters.Location === 'all' || r.Location === filters.Location)
+      (filters.Location === 'all' || r.Location === filters.Location) &&
+      dateInRange(r.InquiryDate, filters.InquiryFrom, filters.InquiryTo) &&
+      dateInRange(r.EventDate, filters.EventFrom, filters.EventTo)
     );
+  }
+
+  // Compares a record's date field (may be a full ISO datetime from the Sheet)
+  // against an optional from/to range (each 'YYYY-MM-DD' or '').
+  function dateInRange(dateVal, from, to) {
+    if (!from && !to) return true;
+    const d = toDateInput(dateVal);
+    if (!d) return false; // filter is active but record has no date to compare
+    if (from && d < from) return false;
+    if (to && d > to) return false;
+    return true;
   }
 
   function renderTable() {
@@ -600,6 +668,7 @@
     rows.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
+        <td class="status-tab-col"><div class="status-tab" style="background:${STATUS_COLORS[r.Status] || 'var(--steel-soft)'}"></div></td>
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
@@ -727,7 +796,7 @@
     el('f-eventdate-label').textContent = EVENTDATE_LABELS[type] || 'Event date';
 
     el('f-guest').value = record ? record.GuestName || '' : '';
-    el('f-status').value = record ? record.Status || 'Not Reached' : 'Not Reached';
+    el('f-status').value = record ? record.Status || 'Voicemail/Email Left' : 'Voicemail/Email Left';
     el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep !== 'all' ? filters.Rep : repList[0]);
     el('f-location').value = record ? record.Location || 'DPS' : (filters.Location !== 'all' ? filters.Location : 'DPS');
     el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';
@@ -879,6 +948,20 @@
   [typeOverlay, recordOverlay, viewOverlay, settingsOverlay, manageOverlay].forEach(ov => {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
   });
+
+  // ---------- Date filters ----------
+  el('filter-inquiry-from').onchange = () => { filters.InquiryFrom = el('filter-inquiry-from').value; renderTable(); };
+  el('filter-inquiry-to').onchange = () => { filters.InquiryTo = el('filter-inquiry-to').value; renderTable(); };
+  el('filter-event-from').onchange = () => { filters.EventFrom = el('filter-event-from').value; renderTable(); };
+  el('filter-event-to').onchange = () => { filters.EventTo = el('filter-event-to').value; renderTable(); };
+  el('clear-dates-btn').onclick = () => {
+    filters.InquiryFrom = filters.InquiryTo = filters.EventFrom = filters.EventTo = '';
+    el('filter-inquiry-from').value = '';
+    el('filter-inquiry-to').value = '';
+    el('filter-event-from').value = '';
+    el('filter-event-to').value = '';
+    renderTable();
+  };
 
   // ---------- Init ----------
   renderFilterChips();

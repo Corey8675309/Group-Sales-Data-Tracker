@@ -26,6 +26,8 @@
     --clr-blue: #3B7DDD;
     --clr-orange: #B5541E;
     --clr-red: #D9483C;
+    --neutral: #8B96A0;
+    --on-dark: #FFFFFF;
     --line: #E1E6E8;
     --line-dark: #40454B;
     --font-display: 'Poppins', sans-serif;
@@ -38,7 +40,7 @@
 
   html, body {
     background: var(--charcoal);
-    color: var(--paper);
+    color: var(--on-dark);
     font-family: var(--font-body);
     height: 100%;
   }
@@ -54,7 +56,7 @@
   }
   :root[data-theme="dark"] .type-option:hover { background: #1D2C30; }
   :root[data-theme="dark"] tbody tr:hover { background: #182226; }
-  :root[data-theme="dark"] .empty-state .tag { color: var(--teal-bright); }
+  :root[data-theme="dark"] .empty-state .tag { color: var(--steel-soft); }
 
   .app { display: flex; min-height: 100vh; }
 
@@ -76,18 +78,18 @@
     display: flex; align-items: center; justify-content: center;
   }
   .theme-toggle {
-    all: unset; cursor: pointer; border-radius: 50%;
+    all: unset; cursor: pointer;
     display: flex; align-items: center; justify-content: center;
-    width: 30px; height: 30px;
-    background: rgba(255,255,255,0.06);
-    transition: background 0.15s ease;
+    width: 22px; height: 22px;
+    opacity: 0.45;
+    transition: opacity 0.15s ease;
   }
-  .theme-toggle:hover { background: rgba(255,255,255,0.12); }
-  .theme-toggle svg { width: 17px; height: 17px; }
+  .theme-toggle:hover { opacity: 0.85; }
+  .theme-toggle svg { width: 14px; height: 14px; }
   .brand-text { display: flex; flex-direction: column; gap: 1px; }
   .brand .eyebrow {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
-    color: var(--teal-bright); text-transform: uppercase;
+    color: var(--steel-soft); text-transform: uppercase;
   }
   .brand h1 { font-family: var(--font-display); font-size: 17px; font-weight: 700; margin: 0; line-height: 1.2; color: #fff; }
 
@@ -98,14 +100,14 @@
     display: flex; justify-content: space-between; align-items: center;
   }
   .filter-label button.manage {
-    all: unset; cursor: pointer; color: var(--teal-bright); font-family: var(--font-mono); font-size: 10px;
+    all: unset; cursor: pointer; color: var(--steel-soft); font-family: var(--font-mono); font-size: 10px;
   }
   .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
   .chip {
     position: relative;
     font-family: var(--font-body); font-size: 12.5px; font-weight: 500;
-    color: var(--paper); background: rgba(255,255,255,0.06);
+    color: var(--on-dark); background: rgba(255,255,255,0.06);
     border: 1px solid var(--line-dark);
     padding: 6px 14px; cursor: pointer;
     border-radius: 999px;
@@ -115,7 +117,7 @@
   .chip:hover { border-color: var(--steel-soft); }
   .chip.active { background: var(--teal); border-color: var(--teal); color: #ffffff; font-weight: 600; }
   .chip.all { color: var(--steel-soft); }
-  .chip.all.active { background: var(--charcoal-2); border-color: var(--steel-soft); color: var(--paper); }
+  .chip.all.active { background: var(--charcoal-2); border-color: var(--steel-soft); color: var(--on-dark); }
 
   .rail-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
   .conn-status { font-family: var(--font-mono); font-size: 10.5px; display: flex; align-items: center; gap: 6px; color: var(--steel-soft); }
@@ -126,7 +128,7 @@
     all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
     color: var(--steel-soft); border: 1px solid var(--line-dark); padding: 7px 10px; text-align: center;
   }
-  .settings-btn:hover { color: var(--paper); border-color: var(--steel-soft); }
+  .settings-btn:hover { color: var(--on-dark); border-color: var(--steel-soft); }
 
   /* ---------- Main ---------- */
   .main { flex: 1; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; min-width: 0; }
@@ -177,8 +179,8 @@
   td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
   .badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
-  .badge-not-reached { background: #ECEEF0; color: var(--steel); }
-  .badge-voicemail-email-left { background: #F1F2F3; color: var(--steel); }
+  .badge-not-reached { background: #ECEEF0; color: var(--neutral); }
+  .badge-voicemail-email-left { background: #ECEEF0; color: var(--neutral); }
   .badge-pending-booking { background: #F7E7DC; color: var(--clr-orange); }
   .badge-booked { background: #E4ECFB; color: var(--clr-blue); }
   .badge-paid { background: #E1F3EA; color: var(--sage); }
@@ -626,7 +628,7 @@
         // explicit "no color" value (e.g. Voicemail/Email Left) — stays neutral
         chip.style.background = 'var(--charcoal-2)';
         chip.style.borderColor = 'var(--steel-soft)';
-        chip.style.color = 'var(--paper)';
+        chip.style.color = 'var(--on-dark)';
       }
       chip.onclick = () => { filters[filterKey] = v; renderAll(); };
       container.appendChild(chip);
@@ -716,7 +718,7 @@
     rows.forEach(r => {
       const tr = document.createElement('tr');
       tr.innerHTML = `
-        <td class="status-tab-col"><div class="status-tab" style="background:${STATUS_COLORS[r.Status] || 'var(--steel-soft)'}"></div></td>
+        <td class="status-tab-col"><div class="status-tab" style="background:${STATUS_COLORS[r.Status] || 'var(--neutral)'}"></div></td>
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
@@ -1013,8 +1015,8 @@
 
   // ---------- Theme ----------
   const THEME_KEY = 'gst_theme';
-  const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4.5" fill="var(--teal-bright)"/><g stroke="var(--teal-bright)" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22.5" y2="12"/><line x1="4.4" y1="4.4" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.6" y2="19.6"/><line x1="4.4" y1="19.6" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.6" y2="4.4"/></g></svg>';
-  const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" fill="var(--teal-bright)"/></svg>';
+  const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4.5" fill="var(--steel-soft)"/><g stroke="var(--steel-soft)" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22.5" y2="12"/><line x1="4.4" y1="4.4" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.6" y2="19.6"/><line x1="4.4" y1="19.6" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.6" y2="4.4"/></g></svg>';
+  const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" fill="var(--steel-soft)"/></svg>';
 
   function applyTheme(theme) {
     document.documentElement.setAttribute('data-theme', theme);

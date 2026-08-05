@@ -171,13 +171,16 @@
     margin-left: -1px;
   }
 
-  .row-actions { white-space: nowrap; }
+  .row-actions { white-space: nowrap; display: flex; gap: 8px; }
   .row-actions button {
-    all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
-    color: var(--steel); margin-right: 12px;
+    all: unset; cursor: pointer; font-family: var(--font-body); font-weight: 600; font-size: 11.5px;
+    padding: 5px 13px; border-radius: 999px; text-align: center;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  .row-actions button:hover { color: var(--ink); text-decoration: underline; }
-  .row-actions button.edit-link { color: var(--teal-deep); }
+  .row-actions button.view-link { border: 1px solid var(--steel); color: var(--steel); }
+  .row-actions button.view-link:hover { border-color: var(--ink); color: var(--ink); }
+  .row-actions button.edit-link { background: var(--teal); color: #fff; }
+  .row-actions button.edit-link:hover { background: var(--teal-deep); }
 
   .empty-state { padding: 60px 20px; text-align: center; color: var(--steel); }
   .empty-state .tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 8px; }
@@ -706,7 +709,7 @@
         <td class="mono">${computeHeadcount(r)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
-          <button data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button>
+          <button class="view-link" data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button>
         </td>
       `;
       tbody.appendChild(tr);

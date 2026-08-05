@@ -37,11 +37,24 @@
   body { margin: 0; }
 
   html, body {
-    background: var(--ink);
+    background: var(--charcoal);
     color: var(--paper);
     font-family: var(--font-body);
     height: 100%;
   }
+
+  /* Dark mode overrides — applied when <html data-theme="dark"> */
+  :root[data-theme="dark"] {
+    --paper: #1B1F22;
+    --paper-2: #23282C;
+    --ink: #E9ECEE;
+    --steel: #A7AFB5;
+    --steel-soft: #6C7479;
+    --line: #33393D;
+  }
+  :root[data-theme="dark"] .type-option:hover { background: #1D2C30; }
+  :root[data-theme="dark"] tbody tr:hover { background: #182226; }
+  :root[data-theme="dark"] .empty-state .tag { color: var(--teal-bright); }
 
   .app { display: flex; min-height: 100vh; }
 
@@ -62,6 +75,15 @@
     width: 30px; height: 30px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
   }
+  .theme-toggle {
+    all: unset; cursor: pointer; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    width: 30px; height: 30px;
+    background: rgba(255,255,255,0.06);
+    transition: background 0.15s ease;
+  }
+  .theme-toggle:hover { background: rgba(255,255,255,0.12); }
+  .theme-toggle svg { width: 17px; height: 17px; }
   .brand-text { display: flex; flex-direction: column; gap: 1px; }
   .brand .eyebrow {
     font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
@@ -135,12 +157,12 @@
   }
   .date-filter-row { display: flex; align-items: center; gap: 6px; }
   .date-filter-row input[type=date] {
-    font-family: var(--font-body); font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--line); background: #fff; color: var(--ink);
+    font-family: var(--font-body); font-size: 12.5px; padding: 6px 8px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
   }
   .date-filter-row .sep { color: var(--steel-soft); font-size: 12px; }
   .btn-small { padding: 6px 14px; font-size: 12px; }
 
-  .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: #fff; }
+  .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
     position: sticky; top: 0; background: var(--paper-2); text-align: left;
@@ -195,7 +217,7 @@
   .form-row { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
   .form-row label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); }
   .form-row input, .form-row select, .form-row textarea {
-    font-family: var(--font-body); font-size: 13.5px; padding: 9px 10px; border: 1px solid var(--line); background: #fff; color: var(--ink);
+    font-family: var(--font-body); font-size: 13.5px; padding: 9px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
   }
   .form-row textarea { resize: vertical; min-height: 60px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
@@ -210,7 +232,7 @@
   .type-picker { display: flex; flex-direction: column; gap: 10px; }
   .type-option {
     display: flex; flex-direction: column; gap: 3px;
-    padding: 14px 16px; border: 1px solid var(--line); cursor: pointer; background: #fff;
+    padding: 14px 16px; border: 1px solid var(--line); cursor: pointer; background: var(--paper);
     transition: border-color 0.15s ease, background 0.15s ease;
   }
   .type-option:hover { border-color: var(--teal-deep); background: #EFFAFB; }
@@ -255,12 +277,7 @@
 <div class="app">
   <div class="rail">
     <div class="brand">
-      <div class="brand-mark">
-        <svg width="30" height="30" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 4L35 30H5L20 4Z" fill="var(--teal-bright)" opacity="0.55"/>
-          <path d="M20 13L28.5 28H11.5L20 13Z" fill="var(--paper)"/>
-        </svg>
-      </div>
+      <button class="brand-mark theme-toggle" id="theme-toggle-btn" title="Toggle dark mode" aria-label="Toggle dark mode"></button>
       <div class="brand-text">
         <div class="eyebrow">Discovery Place</div>
         <h1>Guest Tracker</h1>
@@ -993,6 +1010,24 @@
     el('filter-event-to').value = '';
     renderTable();
   };
+
+  // ---------- Theme ----------
+  const THEME_KEY = 'gst_theme';
+  const SUN_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="4.5" fill="var(--teal-bright)"/><g stroke="var(--teal-bright)" stroke-width="1.8" stroke-linecap="round"><line x1="12" y1="1.5" x2="12" y2="4.5"/><line x1="12" y1="19.5" x2="12" y2="22.5"/><line x1="1.5" y1="12" x2="4.5" y2="12"/><line x1="19.5" y1="12" x2="22.5" y2="12"/><line x1="4.4" y1="4.4" x2="6.5" y2="6.5"/><line x1="17.5" y1="17.5" x2="19.6" y2="19.6"/><line x1="4.4" y1="19.6" x2="6.5" y2="17.5"/><line x1="17.5" y1="6.5" x2="19.6" y2="4.4"/></g></svg>';
+  const MOON_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a7 7 0 0 0 10.5 10.5Z" fill="var(--teal-bright)"/></svg>';
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(THEME_KEY, theme);
+    el('theme-toggle-btn').innerHTML = theme === 'dark' ? MOON_ICON : SUN_ICON;
+  }
+
+  el('theme-toggle-btn').onclick = () => {
+    const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+    applyTheme(current === 'dark' ? 'light' : 'dark');
+  };
+
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
   // ---------- Init ----------
   renderFilterChips();

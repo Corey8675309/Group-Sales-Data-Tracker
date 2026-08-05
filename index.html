@@ -21,6 +21,11 @@
     --sage: #2E9B6D;
     --gold: #E0973D;
     --rust: #D6553F;
+    --clr-purple: #7C5CBF;
+    --clr-pink: #D6577F;
+    --clr-blue: #3B7DDD;
+    --clr-orange: #B5541E;
+    --clr-red: #D9483C;
     --line: #E1E6E8;
     --line-dark: #40454B;
     --font-display: 'Poppins', sans-serif;
@@ -151,11 +156,11 @@
 
   .badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge-not-reached { background: #ECEEF0; color: var(--steel); }
-  .badge-voicemail-email-left { background: #E4F6F9; color: var(--teal-deep); }
-  .badge-pending-booking { background: #FBF0DE; color: var(--gold); }
-  .badge-booked { background: #E7F0E4; color: var(--sage); }
-  .badge-paid { background: #E0F3FA; color: var(--teal-bright); }
-  .badge-cancelled { background: #F5E4DE; color: var(--rust); }
+  .badge-voicemail-email-left { background: #F1F2F3; color: var(--steel); }
+  .badge-pending-booking { background: #F7E7DC; color: var(--clr-orange); }
+  .badge-booked { background: #E4ECFB; color: var(--clr-blue); }
+  .badge-paid { background: #E1F3EA; color: var(--sage); }
+  .badge-cancelled { background: #FAE1DE; color: var(--clr-red); }
 
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
 
@@ -553,11 +558,22 @@
 
   const STATUSES = ['Voicemail/Email Left', 'Pending Booking', 'Booked', 'Paid', 'Cancelled'];
   const STATUS_COLORS = {
-    'Voicemail/Email Left': 'var(--teal-deep)',
-    'Pending Booking': 'var(--gold)',
-    'Booked': 'var(--sage)',
-    'Paid': 'var(--teal-bright)',
-    'Cancelled': 'var(--rust)'
+    'Voicemail/Email Left': null, // white / no color, per request
+    'Pending Booking': 'var(--clr-orange)',
+    'Booked': 'var(--clr-blue)',
+    'Paid': 'var(--sage)',
+    'Cancelled': 'var(--clr-red)'
+  };
+  const REP_COLORS = {
+    'Corey': 'var(--clr-purple)',
+    'Deanna': 'var(--clr-pink)',
+    'Jeremy': 'var(--clr-blue)',
+    'Kay': 'var(--sage)'
+  };
+  const LOCATION_COLORS = {
+    'DPS': 'var(--clr-blue)',
+    'DPKH': 'var(--clr-purple)',
+    'DPKR': 'var(--clr-purple)'
   };
 
   function computeHeadcount(record) {
@@ -568,7 +584,7 @@
   }
 
   // ---------- Filters / chips ----------
-  function renderChipGroup(container, values, filterKey) {
+  function renderChipGroup(container, values, filterKey, colorMap) {
     container.innerHTML = '';
     const allChip = document.createElement('div');
     allChip.className = 'chip all' + (filters[filterKey] === 'all' ? ' active' : '');
@@ -578,8 +594,20 @@
 
     values.forEach(v => {
       const chip = document.createElement('div');
-      chip.className = 'chip' + (filters[filterKey] === v ? ' active' : '');
+      const isActive = filters[filterKey] === v;
+      chip.className = 'chip' + (isActive ? ' active' : '');
       chip.textContent = v;
+      const color = colorMap ? colorMap[v] : null;
+      if (isActive && color) {
+        chip.style.background = color;
+        chip.style.borderColor = color;
+        chip.style.color = '#fff';
+      } else if (isActive && colorMap && !color) {
+        // explicit "no color" value (e.g. Voicemail/Email Left) — stays neutral
+        chip.style.background = 'var(--charcoal-2)';
+        chip.style.borderColor = 'var(--steel-soft)';
+        chip.style.color = 'var(--paper)';
+      }
       chip.onclick = () => { filters[filterKey] = v; renderAll(); };
       container.appendChild(chip);
     });
@@ -596,9 +624,9 @@
 
   function renderFilterChips() {
     renderChipGroup(el('chips-program'), PROGRAM_TYPES, 'ProgramType');
-    renderChipGroup(el('chips-rep'), repList, 'Rep');
-    renderChipGroup(el('chips-status'), STATUSES, 'Status');
-    renderChipGroup(el('chips-location'), LOCATIONS, 'Location');
+    renderChipGroup(el('chips-rep'), repList, 'Rep', REP_COLORS);
+    renderChipGroup(el('chips-status'), STATUSES, 'Status', STATUS_COLORS);
+    renderChipGroup(el('chips-location'), LOCATIONS, 'Location', LOCATION_COLORS);
     populateSelect(el('f-rep'), repList);
   }
 

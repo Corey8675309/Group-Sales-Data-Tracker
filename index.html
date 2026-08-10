@@ -1058,7 +1058,8 @@
     const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
     const displayVal = hasValue ? escapeHtml(value) : '—';
     const cls = 'view-value' + (hasValue ? '' : ' empty') + (opts.notes ? ' notes' : '');
-    return `<div class="view-field${opts.full ? ' full' : ''}"><div class="view-label">${label}</div><div class="${cls}">${displayVal}</div></div>`;
+    const labelHtml = label ? `<div class="view-label">${label}</div>` : '';
+    return `<div class="view-field${opts.full ? ' full' : ''}">${labelHtml}<div class="${cls}">${displayVal}</div></div>`;
   }
 
   function openViewModal(record) {
@@ -1086,7 +1087,7 @@
     }
 
     html += '<div class="view-section-title">Notes</div><div class="view-grid">';
-    html += vField('Notes', record.Notes, { full: true, notes: true });
+    html += vField('', record.Notes, { full: true, notes: true });
     html += '</div>';
 
     el('view-modal-body').innerHTML = html;

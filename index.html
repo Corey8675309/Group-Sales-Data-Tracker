@@ -76,7 +76,6 @@
   }
   :root[data-theme="dark"] .badge-not-reached,
   :root[data-theme="dark"] .badge-voicemail-email-left { background: #34383C; }
-  :root[data-theme="dark"] .badge-calendly-call { background: #2E2840; }
   :root[data-theme="dark"] .badge-pending-booking { background: #3A2E22; }
   :root[data-theme="dark"] .badge-to-be-booked { background: #1E2E31; }
   :root[data-theme="dark"] .badge-booked { background: #232A38; }
@@ -217,7 +216,7 @@
 
   .badge { display: inline-block; font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge-not-reached { background: #ECEEF0; color: var(--badge-neutral); }
-  .badge-calendly-call { background: #EBE4F5; color: var(--badge-purple); }
+  .badge-calendly-call { background: transparent; border: 1px solid var(--line); color: var(--ink); }
   .badge-voicemail-email-left { background: #ECEEF0; color: var(--badge-neutral); }
   .badge-pending-booking { background: #F7E7DC; color: var(--badge-orange); }
   .badge-to-be-booked { background: #DCF3F7; color: var(--badge-teal); }
@@ -625,7 +624,7 @@
 
   const STATUSES = ['Calendly Call', 'Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
   const STATUS_COLORS = {
-    'Calendly Call': 'var(--clr-purple)',
+    'Calendly Call': null, // blank slate — no interaction has happened yet
     'Voicemail/Email Left': null, // white / no color, per request
     'Pending Booking': 'var(--clr-orange)',
     'To Be Booked': 'var(--teal)',

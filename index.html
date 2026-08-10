@@ -37,6 +37,7 @@
     --badge-red: #C93B2E;
     --badge-neutral: #5B6770;
     --badge-teal: #0D7F99;
+    --badge-purple: #6B4FA0;
     --line: #E1E6E8;
     --line-dark: #40454B;
     --font-display: 'Poppins', sans-serif;
@@ -71,9 +72,11 @@
     --badge-red: #F0776B;
     --badge-neutral: #B7C0C6;
     --badge-teal: #4FD1E8;
+    --badge-purple: #B39DDB;
   }
   :root[data-theme="dark"] .badge-not-reached,
   :root[data-theme="dark"] .badge-voicemail-email-left { background: #34383C; }
+  :root[data-theme="dark"] .badge-calendly-call { background: #2E2840; }
   :root[data-theme="dark"] .badge-pending-booking { background: #3A2E22; }
   :root[data-theme="dark"] .badge-to-be-booked { background: #1E2E31; }
   :root[data-theme="dark"] .badge-booked { background: #232A38; }
@@ -214,6 +217,7 @@
 
   .badge { display: inline-block; font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge-not-reached { background: #ECEEF0; color: var(--badge-neutral); }
+  .badge-calendly-call { background: #EBE4F5; color: var(--badge-purple); }
   .badge-voicemail-email-left { background: #ECEEF0; color: var(--badge-neutral); }
   .badge-pending-booking { background: #F7E7DC; color: var(--badge-orange); }
   .badge-to-be-booked { background: #DCF3F7; color: var(--badge-teal); }
@@ -436,6 +440,7 @@
       <div class="form-row">
         <label>Status</label>
         <select id="f-status">
+          <option>Calendly Call</option>
           <option>Voicemail/Email Left</option>
           <option>Pending Booking</option>
           <option>To Be Booked</option>
@@ -618,8 +623,9 @@
 
   const el = id => document.getElementById(id);
 
-  const STATUSES = ['Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
+  const STATUSES = ['Calendly Call', 'Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
   const STATUS_COLORS = {
+    'Calendly Call': 'var(--clr-purple)',
     'Voicemail/Email Left': null, // white / no color, per request
     'Pending Booking': 'var(--clr-orange)',
     'To Be Booked': 'var(--teal)',

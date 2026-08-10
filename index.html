@@ -599,7 +599,7 @@
 
   let allRecords = [];
   let filters = {
-    ProgramType: 'all', Rep: 'all', Status: 'all', Location: 'all',
+    ProgramType: new Set(), Rep: new Set(), Status: new Set(), Location: new Set(),
     InquiryFrom: '', InquiryTo: '', EventFrom: '', EventTo: ''
   };
   let sortKey = 'EventDate';
@@ -640,14 +640,14 @@
   function renderChipGroup(container, values, filterKey, colorMap) {
     container.innerHTML = '';
     const allChip = document.createElement('div');
-    allChip.className = 'chip all' + (filters[filterKey] === 'all' ? ' active' : '');
+    allChip.className = 'chip all' + (filters[filterKey].size === 0 ? ' active' : '');
     allChip.textContent = 'All';
-    allChip.onclick = () => { filters[filterKey] = 'all'; renderAll(); };
+    allChip.onclick = () => { filters[filterKey].clear(); renderAll(); };
     container.appendChild(allChip);
 
     values.forEach(v => {
       const chip = document.createElement('div');
-      const isActive = filters[filterKey] === v;
+      const isActive = filters[filterKey].has(v);
       chip.className = 'chip' + (isActive ? ' active' : '');
       chip.textContent = v;
       const color = colorMap ? colorMap[v] : null;
@@ -661,7 +661,11 @@
         chip.style.borderColor = 'var(--steel-soft)';
         chip.style.color = 'var(--on-dark)';
       }
-      chip.onclick = () => { filters[filterKey] = v; renderAll(); };
+      chip.onclick = () => {
+        if (filters[filterKey].has(v)) filters[filterKey].delete(v);
+        else filters[filterKey].add(v);
+        renderAll();
+      };
       container.appendChild(chip);
     });
   }
@@ -727,10 +731,10 @@
 
   function getFiltered() {
     return allRecords.filter(r =>
-      (filters.ProgramType === 'all' || r.ProgramType === filters.ProgramType) &&
-      (filters.Rep === 'all' || r.Rep === filters.Rep) &&
-      (filters.Status === 'all' || r.Status === filters.Status) &&
-      (filters.Location === 'all' || r.Location === filters.Location) &&
+      (filters.ProgramType.size === 0 || filters.ProgramType.has(r.ProgramType)) &&
+      (filters.Rep.size === 0 || filters.Rep.has(r.Rep)) &&
+      (filters.Status.size === 0 || filters.Status.has(r.Status)) &&
+      (filters.Location.size === 0 || filters.Location.has(r.Location)) &&
       dateInRange(r.InquiryDate, filters.InquiryFrom, filters.InquiryTo) &&
       dateInRange(r.EventDate, filters.EventFrom, filters.EventTo)
     );
@@ -841,8 +845,11 @@
 
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
 
-    el('view-title').textContent = filters.ProgramType === 'all' ? 'All entries' : filters.ProgramType + ' entries';
-    el('view-sub').textContent = `program: ${filters.ProgramType} · team member: ${filters.Rep} · status: ${filters.Status} · location: ${filters.Location}`;
+    function filterSummary(key) {
+      return filters[key].size ? Array.from(filters[key]).join(', ') : 'all';
+    }
+    el('view-title').textContent = filters.ProgramType.size === 0 ? 'All entries' : Array.from(filters.ProgramType).join(' & ') + ' entries';
+    el('view-sub').textContent = `program: ${filterSummary('ProgramType')} · team member: ${filterSummary('Rep')} · status: ${filterSummary('Status')} · location: ${filterSummary('Location')}`;
   }
 
   function renderAll() { renderFilterChips(); renderTable(); }
@@ -945,8 +952,8 @@
 
     el('f-guest').value = record ? record.GuestName || '' : '';
     el('f-status').value = record ? record.Status || 'Voicemail/Email Left' : 'Voicemail/Email Left';
-    el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep !== 'all' ? filters.Rep : repList[0]);
-    el('f-location').value = record ? record.Location || 'DPS' : (filters.Location !== 'all' ? filters.Location : 'DPS');
+    el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep.size === 1 ? Array.from(filters.Rep)[0] : repList[0]);
+    el('f-location').value = record ? record.Location || 'DPS' : (filters.Location.size === 1 ? Array.from(filters.Location)[0] : 'DPS');
     el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';
     el('f-inquirydate').value = record ? toDateInput(record.InquiryDate) : (new Date().toISOString().slice(0,10));
     el('f-notes').value = record ? record.Notes || '' : '';

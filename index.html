@@ -454,6 +454,7 @@
           <option>DPS</option>
           <option>DPKH</option>
           <option>DPKR</option>
+          <option>Outreach</option>
         </select>
       </div>
       <div class="form-row">
@@ -540,7 +541,7 @@
 
   const DEFAULT_REPS = ['Corey', 'Deanna', 'Jeremy', 'Kay'];
   const PROGRAM_TYPES = ['Field Trip', 'Birthday', 'Outreach'];
-  const LOCATIONS = ['DPS', 'DPKH', 'DPKR'];
+  const LOCATIONS = ['DPS', 'DPKH', 'DPKR', 'Outreach'];
 
   const GUEST_LABELS = {
     'Field Trip': 'School / organization',
@@ -635,7 +636,8 @@
   const LOCATION_COLORS = {
     'DPS': 'var(--clr-blue)',
     'DPKH': 'var(--clr-purple)',
-    'DPKR': 'var(--clr-purple)'
+    'DPKR': 'var(--clr-purple)',
+    'Outreach': 'var(--gold)'
   };
 
   function computeHeadcount(record) {

@@ -564,6 +564,7 @@
       { key: 'FT_ContactNumber', label: 'Contact number' },
       { key: 'FT_ContactEmail', label: 'Contact email' },
       { key: 'FT_SchoolDistrict', label: 'School district' },
+      { key: 'Title1', label: 'Title I school', type: 'select', options: ['No', 'Yes'] },
       { key: 'FT_DayOfContact', label: 'Day-of contact' },
       { key: 'FT_DayOfNumber', label: 'Day-of number' },
       { key: 'FT_PaymentContact', label: 'Payment contact' },
@@ -589,6 +590,7 @@
     ],
     'Outreach': [
       { key: 'OR_SchoolDistrict', label: 'School district' },
+      { key: 'Title1', label: 'Title I school', type: 'select', options: ['No', 'Yes'] },
       { key: 'OR_Address', label: 'Address' },
       { key: 'OR_PrimaryContact', label: 'Primary contact' },
       { key: 'OR_PrimaryNumber', label: 'Primary number' },
@@ -935,8 +937,18 @@
       wrap.className = 'form-row';
       const label = document.createElement('label');
       label.textContent = f.label;
-      const input = document.createElement('input');
-      input.type = f.type === 'number' ? 'number' : (f.type === 'time' ? 'time' : 'text');
+      let input;
+      if (f.type === 'select') {
+        input = document.createElement('select');
+        (f.options || []).forEach(opt => {
+          const o = document.createElement('option');
+          o.value = opt; o.textContent = opt;
+          input.appendChild(o);
+        });
+      } else {
+        input = document.createElement('input');
+        input.type = f.type === 'number' ? 'number' : (f.type === 'time' ? 'time' : 'text');
+      }
       input.id = 'tf-' + f.key;
       input.dataset.key = f.key;
       if (record && record[f.key] !== undefined) input.value = cleanTextValue(record[f.key]);

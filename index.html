@@ -200,6 +200,9 @@
   tbody td { padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
   tbody tr:hover { background: #F2FAFB; }
   tbody tr { cursor: pointer; }
+  tbody tr.row-exit { opacity: 0; transform: scale(0.98); transition: opacity 0.13s ease, transform 0.13s ease; }
+  tbody tr.row-enter { opacity: 0; }
+  tbody tr:not(.row-exit):not(.row-enter) { opacity: 1; transition: opacity 0.15s ease; }
   td.mono, .mono { font-family: var(--font-mono); }
   td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -761,17 +764,39 @@
     });
 
     const tbody = el('records-tbody');
-    tbody.innerHTML = '';
+    const newIds = new Set(rows.map(r => r.ID));
+    const exiting = Array.from(tbody.children).filter(tr => tr.dataset.id && !newIds.has(tr.dataset.id));
+
+    if (exiting.length) {
+      exiting.forEach(tr => tr.classList.add('row-exit'));
+      setTimeout(() => finishRenderTable(rows), 140);
+    } else {
+      finishRenderTable(rows);
+    }
+  }
+
+  function finishRenderTable(rows) {
+    const tbody = el('records-tbody');
+
+    // Capture current row positions (for rows sticking around) so we can
+    // shift them smoothly into their new spot instead of snapping.
+    const prevRects = {};
+    Array.from(tbody.children).forEach(tr => {
+      if (tr.dataset.id) prevRects[tr.dataset.id] = tr.getBoundingClientRect();
+    });
+
     el('empty-state').style.display = rows.length ? 'none' : 'block';
+    tbody.innerHTML = '';
 
     rows.forEach(r => {
       const tr = document.createElement('tr');
+      tr.dataset.id = r.ID;
       tr.innerHTML = `
         <td class="status-tab-col"><div class="status-tab" style="background:${STATUS_COLORS[r.Status] || 'var(--neutral)'}"></div></td>
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
-        <td>${escapeHtml(r.Location || '—')}</td>
+        <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(r.Location || '—')}</span></td>
         <td>${escapeHtml(r.GuestName || '—')}</td>
         <td class="mono">${formatDateDisplay(r.EventDate)}</td>
         <td class="mono">${computeHeadcount(r)}</td>
@@ -788,6 +813,30 @@
     });
     tbody.querySelectorAll('[data-edit]').forEach(btn => {
       btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
+    });
+
+    // Shift rows that persisted from their old position, fade in ones that
+    // are newly appearing.
+    requestAnimationFrame(() => {
+      Array.from(tbody.children).forEach(tr => {
+        const id = tr.dataset.id;
+        const prev = prevRects[id];
+        if (prev) {
+          const newRect = tr.getBoundingClientRect();
+          const deltaY = prev.top - newRect.top;
+          if (Math.abs(deltaY) > 1) {
+            tr.style.transition = 'none';
+            tr.style.transform = `translateY(${deltaY}px)`;
+            requestAnimationFrame(() => {
+              tr.style.transition = 'transform 0.18s ease';
+              tr.style.transform = '';
+            });
+          }
+        } else {
+          tr.classList.add('row-enter');
+          requestAnimationFrame(() => { tr.classList.remove('row-enter'); });
+        }
+      });
     });
 
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;

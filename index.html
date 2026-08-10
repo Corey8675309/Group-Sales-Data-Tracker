@@ -1050,7 +1050,12 @@
     list.querySelectorAll('[data-confirm]').forEach(btn => {
       btn.onclick = async () => {
         btn.textContent = 'Confirming…';
-        await apiPost({ action: 'confirmIntake', id: btn.dataset.confirm });
+        const result = await apiPost({ action: 'confirmIntake', id: btn.dataset.confirm });
+        if (result && result.error) {
+          alert('Could not confirm this entry: ' + result.error);
+          btn.textContent = 'Confirm';
+          return;
+        }
         await apiGetIntake();
         await apiGet();
         renderIntakeList();
@@ -1059,7 +1064,11 @@
     list.querySelectorAll('[data-discard]').forEach(btn => {
       btn.onclick = async () => {
         if (!confirm('Discard this Calendly booking without adding it? This cannot be undone.')) return;
-        await apiPost({ action: 'rejectIntake', id: btn.dataset.discard });
+        const result = await apiPost({ action: 'rejectIntake', id: btn.dataset.discard });
+        if (result && result.error) {
+          alert('Could not discard this entry: ' + result.error);
+          return;
+        }
         await apiGetIntake();
         renderIntakeList();
       };

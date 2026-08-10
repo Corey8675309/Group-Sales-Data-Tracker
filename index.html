@@ -188,6 +188,12 @@
   }
   .date-filter-row .sep { color: var(--steel-soft); font-size: 12px; }
   .btn-small { padding: 6px 14px; font-size: 12px; }
+  .btn-clear {
+    all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 10.5px;
+    color: var(--steel); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .btn-clear:hover { color: var(--ink); border-color: var(--steel); }
 
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -360,6 +366,7 @@
           <input type="date" id="filter-inquiry-from">
           <span class="sep">–</span>
           <input type="date" id="filter-inquiry-to">
+          <button class="btn-clear" id="clear-inquiry-btn">Clear</button>
         </div>
       </div>
       <div class="date-filter-group">
@@ -368,9 +375,9 @@
           <input type="date" id="filter-event-from">
           <span class="sep">–</span>
           <input type="date" id="filter-event-to">
+          <button class="btn-clear" id="clear-event-btn">Clear</button>
         </div>
       </div>
-      <button class="btn btn-ghost btn-small" id="clear-dates-btn">Clear dates</button>
     </div>
 
     <div class="summary-line" id="summary-line">0 entries shown</div>
@@ -1109,10 +1116,14 @@
   el('filter-inquiry-to').onchange = () => { filters.InquiryTo = el('filter-inquiry-to').value; renderTable(); };
   el('filter-event-from').onchange = () => { filters.EventFrom = el('filter-event-from').value; renderTable(); };
   el('filter-event-to').onchange = () => { filters.EventTo = el('filter-event-to').value; renderTable(); };
-  el('clear-dates-btn').onclick = () => {
-    filters.InquiryFrom = filters.InquiryTo = filters.EventFrom = filters.EventTo = '';
+  el('clear-inquiry-btn').onclick = () => {
+    filters.InquiryFrom = filters.InquiryTo = '';
     el('filter-inquiry-from').value = '';
     el('filter-inquiry-to').value = '';
+    renderTable();
+  };
+  el('clear-event-btn').onclick = () => {
+    filters.EventFrom = filters.EventTo = '';
     el('filter-event-from').value = '';
     el('filter-event-to').value = '';
     renderTable();

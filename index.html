@@ -697,6 +697,27 @@
     if (isNaN(d)) return escapeHtml(String(val));
     return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
   }
+
+  // Free-text time fields (Arrival time, Party time, etc.) can occasionally
+  // get silently auto-converted by Google Sheets into an actual time value
+  // if the typed text looks like a time (e.g. "3:00 PM"). That comes back
+  // from the Sheet as a garbled full timestamp anchored to Dec 30, 1899
+  // (Sheets' time-of-day epoch). This detects that pattern and shows just
+  // the time instead — cosmetic cleanup for already-affected values; the
+  // Apps Script backend now prevents this from happening on new entries.
+  function cleanTextValue(val) {
+    if (!val) return val;
+    const s = String(val);
+    const m = s.match(/^1899-12-30T(\d{2}):(\d{2}):(\d{2})/);
+    if (m) {
+      let h = parseInt(m[1], 10);
+      const min = m[2];
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12; if (h === 0) h = 12;
+      return `${h}:${min} ${ampm}`;
+    }
+    return val;
+  }
   function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
@@ -855,7 +876,7 @@
       input.type = f.type === 'number' ? 'number' : (f.type === 'time' ? 'time' : 'text');
       input.id = 'tf-' + f.key;
       input.dataset.key = f.key;
-      if (record && record[f.key] !== undefined) input.value = record[f.key];
+      if (record && record[f.key] !== undefined) input.value = cleanTextValue(record[f.key]);
       wrap.appendChild(label);
       wrap.appendChild(input);
       container.appendChild(wrap);
@@ -974,7 +995,7 @@
     const fields = TYPE_FIELDS[type] || [];
     if (fields.length) {
       html += '<div class="view-section-title">Program details</div><div class="view-grid">';
-      fields.forEach(f => { html += vField(f.label, record[f.key]); });
+      fields.forEach(f => { html += vField(f.label, cleanTextValue(record[f.key])); });
       html += '</div>';
     }
 

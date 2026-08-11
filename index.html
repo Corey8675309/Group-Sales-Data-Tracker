@@ -228,6 +228,13 @@
   .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
 
   .status-tab-col { width: 0; padding: 0 !important; }
+  .row-delete-btn {
+    all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; color: var(--steel-soft); opacity: 0.6;
+    transition: color 0.15s ease, opacity 0.15s ease;
+  }
+  .row-delete-btn:hover { color: var(--clr-red); opacity: 1; }
+  .row-delete-btn svg { width: 14px; height: 14px; }
   .status-tab {
     width: 7px; height: 100%; min-height: 38px;
     border-radius: 0 4px 4px 0;
@@ -628,6 +635,8 @@
   const el = id => document.getElementById(id);
 
   const STATUSES = ['Calendly Call', 'Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
+  const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6"/><path d="M6 6l1 13.5A2 2 0 0 0 9 21h6a2 2 0 0 0 2-2L18 6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg>';
+
   const STATUS_COLORS = {
     'Calendly Call': null, // blank slate — no interaction has happened yet
     'Voicemail/Email Left': null, // white / no color, per request
@@ -827,7 +836,7 @@
         <td class="mono">${computeHeadcount(r)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
-          <button class="view-link" data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button>
+          <button class="view-link" data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button><button class="row-delete-btn" data-quickdelete="${r.ID}" title="Delete entry">${TRASH_ICON}</button>
         </td>
       `;
       tbody.appendChild(tr);
@@ -838,6 +847,20 @@
     });
     tbody.querySelectorAll('[data-edit]').forEach(btn => {
       btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
+    });
+    tbody.querySelectorAll('[data-quickdelete]').forEach(btn => {
+      btn.onclick = async (ev) => {
+        ev.stopPropagation();
+        const record = allRecords.find(r => r.ID === btn.dataset.quickdelete);
+        const label = record ? (record.GuestName || 'this entry') : 'this entry';
+        if (!confirm(`Delete "${label}"? This cannot be undone.`)) return;
+        try {
+          await apiPost({ action: 'delete', id: btn.dataset.quickdelete });
+          await apiGet();
+        } catch (err) {
+          alert('Could not delete. Check your connection in Settings.');
+        }
+      };
     });
 
     // Shift rows that persisted from their old position, fade in ones that

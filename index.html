@@ -129,8 +129,8 @@
 
   .filter-group { display: flex; flex-direction: column; gap: 8px; }
   .filter-label {
-    font-family: var(--font-fantasy); font-size: 15px; letter-spacing: 0.01em;
-    color: var(--steel-soft);
+    font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--steel-soft);
     display: flex; justify-content: space-between; align-items: center;
   }
   .filter-label button.manage {
@@ -176,7 +176,6 @@
   .topbar .sub { font-family: var(--font-body); font-size: 11.5px; color: var(--steel); margin-top: 3px; }
 
   .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; border: none; cursor: pointer; padding: 10px 20px; border-radius: 999px; }
-  #new-record-btn, #export-btn { font-family: var(--font-fantasy); font-weight: 400; font-size: 16px; padding: 9px 22px; }
   .btn-primary { background: var(--teal); color: #ffffff; }
   .btn-primary:hover { background: var(--teal-deep); }
   .btn-ghost { background: transparent; border: 1px solid var(--steel); color: var(--steel); border-radius: 999px; }
@@ -213,7 +212,7 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
     position: sticky; top: 0; background: var(--paper-2); text-align: left;
-    font-family: var(--font-fantasy); font-size: 15px; letter-spacing: 0.01em;
+    font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase;
     color: var(--steel); padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap;
   }
   thead th:hover { color: var(--ink); }
@@ -376,7 +375,7 @@
   <div class="main">
     <div class="topbar">
       <div>
-        <h2 id="view-title">All entries</h2>
+        <h2 id="view-title">Entries</h2>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-ghost" id="export-btn">Export</button>
@@ -902,8 +901,6 @@
     });
 
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
-
-    el('view-title').textContent = filters.ProgramType.size === 0 ? 'All entries' : Array.from(filters.ProgramType).join(' & ') + ' entries';
   }
 
   function renderAll() { renderFilterChips(); renderTable(); }

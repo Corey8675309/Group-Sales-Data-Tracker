@@ -122,19 +122,19 @@
   .theme-toggle svg { width: 14px; height: 14px; }
   .brand-text { display: flex; flex-direction: column; gap: 1px; }
   .brand .eyebrow {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em;
+    font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em;
     color: var(--steel-soft); text-transform: uppercase;
   }
-  .brand h1 { font-family: var(--font-fantasy); font-size: 24px; font-weight: 400; margin: 0; line-height: 1.25; color: #fff; letter-spacing: 0.02em; }
+  .brand h1 { font-family: var(--font-fantasy); font-size: 28px; font-weight: 400; margin: 0; line-height: 1.25; color: #fff; letter-spacing: 0.02em; }
 
   .filter-group { display: flex; flex-direction: column; gap: 8px; }
   .filter-label {
-    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.1em;
-    text-transform: uppercase; color: var(--steel-soft);
+    font-family: var(--font-fantasy); font-size: 15px; letter-spacing: 0.01em;
+    color: var(--steel-soft);
     display: flex; justify-content: space-between; align-items: center;
   }
   .filter-label button.manage {
-    all: unset; cursor: pointer; color: var(--steel-soft); font-family: var(--font-mono); font-size: 10px;
+    all: unset; cursor: pointer; color: var(--steel-soft); font-family: var(--font-body); font-size: 10px;
   }
   .chip-list { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -154,12 +154,12 @@
   .chip.all.active { background: var(--charcoal-2); border-color: var(--steel-soft); color: var(--on-dark); }
 
   .rail-footer { margin-top: auto; display: flex; flex-direction: column; gap: 8px; }
-  .conn-status { font-family: var(--font-mono); font-size: 10.5px; display: flex; align-items: center; gap: 6px; color: var(--steel-soft); }
+  .conn-status { font-family: var(--font-body); font-size: 10.5px; display: flex; align-items: center; gap: 6px; color: var(--steel-soft); }
   .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--steel-soft); }
   .conn-dot.ok { background: var(--sage); }
   .conn-dot.err { background: var(--rust); }
   .settings-btn {
-    all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 11px;
+    all: unset; cursor: pointer; font-family: var(--font-body); font-size: 11px;
     color: var(--steel-soft); border: 1px solid var(--line-dark); padding: 7px 10px; text-align: center;
   }
   .settings-btn:hover { color: var(--on-dark); border-color: var(--steel-soft); }
@@ -168,17 +168,22 @@
   .main { flex: 1; background: var(--paper); color: var(--ink); display: flex; flex-direction: column; min-width: 0; height: 100%; overflow: hidden; }
 
   .topbar { display: flex; align-items: center; justify-content: space-between; padding: 20px 28px 16px; border-bottom: 1px solid var(--line); }
-  .topbar-actions { display: flex; gap: 10px; align-items: center; }  .topbar h2 { font-family: var(--font-display); font-size: 20px; font-weight: 600; margin: 0; }
-  .topbar .sub { font-family: var(--font-mono); font-size: 11.5px; color: var(--steel); margin-top: 3px; }
+  .topbar-actions { display: flex; gap: 10px; align-items: center; }
+  .topbar h2 {
+    font-family: var(--font-body); font-size: 13px; font-weight: 700; margin: 0;
+    text-transform: uppercase; letter-spacing: 0.08em; color: var(--steel);
+  }
+  .topbar .sub { font-family: var(--font-body); font-size: 11.5px; color: var(--steel); margin-top: 3px; }
 
   .btn { font-family: var(--font-body); font-weight: 600; font-size: 13px; border: none; cursor: pointer; padding: 10px 20px; border-radius: 999px; }
+  #new-record-btn, #export-btn { font-family: var(--font-fantasy); font-weight: 400; font-size: 16px; padding: 9px 22px; }
   .btn-primary { background: var(--teal); color: #ffffff; }
   .btn-primary:hover { background: var(--teal-deep); }
   .btn-ghost { background: transparent; border: 1px solid var(--steel); color: var(--steel); border-radius: 999px; }
   .btn-ghost:hover { border-color: var(--ink); color: var(--ink); }
 
   .summary-line {
-    font-family: var(--font-mono); font-size: 12px; color: var(--steel);
+    font-family: var(--font-body); font-size: 12px; color: var(--steel);
     margin: 14px 28px 0; letter-spacing: 0.02em;
   }
   .summary-line strong { color: var(--ink); font-weight: 600; }
@@ -189,7 +194,7 @@
   }
   .date-filter-group { display: flex; flex-direction: column; gap: 5px; }
   .date-filter-group label {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel);
+    font-family: var(--font-body); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel);
   }
   .date-filter-row { display: flex; align-items: center; gap: 6px; }
   .date-filter-row input[type=date] {
@@ -198,7 +203,7 @@
   .date-filter-row .sep { color: var(--steel-soft); font-size: 12px; }
   .btn-small { padding: 6px 14px; font-size: 12px; }
   .btn-clear {
-    all: unset; cursor: pointer; font-family: var(--font-mono); font-size: 10.5px;
+    all: unset; cursor: pointer; font-family: var(--font-body); font-size: 10.5px;
     color: var(--steel); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px;
     transition: color 0.15s ease, border-color 0.15s ease;
   }
@@ -208,7 +213,7 @@
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
     position: sticky; top: 0; background: var(--paper-2); text-align: left;
-    font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase;
+    font-family: var(--font-fantasy); font-size: 15px; letter-spacing: 0.01em;
     color: var(--steel); padding: 10px 14px; border-bottom: 1px solid var(--line); cursor: pointer; white-space: nowrap;
   }
   thead th:hover { color: var(--ink); }
@@ -221,7 +226,7 @@
   td.mono, .mono { font-family: var(--font-mono); }
   td.notes { color: var(--steel); max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-  .badge { display: inline-block; font-family: var(--font-mono); font-weight: 600; font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
+  .badge { display: inline-block; font-family: var(--font-body); font-weight: 600; font-size: 10.5px; padding: 3px 8px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.04em; }
   .badge-not-reached { background: #ECEEF0; color: var(--badge-neutral); }
   .badge-calendly-call { background: transparent; border: 1px solid var(--line); color: var(--ink); }
   .badge-voicemail-email-left { background: #ECEEF0; color: var(--badge-neutral); }
@@ -231,7 +236,7 @@
   .badge-paid { background: #E1F3EA; color: var(--badge-green); }
   .badge-cancelled { background: #FAE1DE; color: var(--badge-red); }
 
-  .program-tag { font-family: var(--font-mono); font-size: 10.5px; color: var(--steel); }
+  .program-tag { font-family: var(--font-body); font-size: 10.5px; color: var(--steel); }
 
   .status-tab-col { width: 0; padding: 0 !important; }
   .row-delete-btn {
@@ -257,28 +262,28 @@
   .row-actions button.edit-link:hover { border-color: var(--ink); color: var(--ink); }
 
   .empty-state { padding: 60px 20px; text-align: center; color: var(--steel); }
-  .empty-state .tag { display: inline-block; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 8px; }
+  .empty-state .tag { display: inline-block; font-family: var(--font-body); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 8px; }
 
   /* ---------- Modal ---------- */
   .overlay { position: fixed; inset: 0; background: rgba(28,43,57,0.55); display: none; align-items: center; justify-content: center; z-index: 50; padding: 20px; }
   .overlay.open { display: flex; }
   .modal { background: var(--paper); color: var(--ink); width: 100%; max-width: 560px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--line); padding: 24px; }
   .modal h3 { font-family: var(--font-display); font-size: 17px; margin: 0 0 4px; }
-  .modal .modal-kicker { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 14px; }
+  .modal .modal-kicker { font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--teal-deep); margin-bottom: 14px; }
 
   .form-row { margin-bottom: 14px; display: flex; flex-direction: column; gap: 5px; }
-  .form-row label { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); }
+  .form-row label { font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); }
   .form-row input, .form-row select, .form-row textarea {
     font-family: var(--font-body); font-size: 13.5px; padding: 9px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
   }
   .form-row textarea { resize: vertical; min-height: 60px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .section-divider {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--steel-soft); margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--line);
   }
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
-  .modal-danger { margin-right: auto; background: transparent; border: none; color: var(--rust); font-family: var(--font-mono); font-size: 11.5px; cursor: pointer; }
+  .modal-danger { margin-right: auto; background: transparent; border: none; color: var(--rust); font-family: var(--font-body); font-size: 11.5px; cursor: pointer; }
 
   /* Type picker */
   .type-picker { display: flex; flex-direction: column; gap: 10px; }
@@ -295,7 +300,7 @@
 
   /* View modal */
   .view-section-title {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+    font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--steel-soft); margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--line);
   }
   .view-section-title:first-of-type { margin-top: 0; padding-top: 0; border-top: none; }
@@ -303,7 +308,7 @@
   .view-field { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .view-field.full { grid-column: 1 / -1; }
   .view-label {
-    font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel-soft);
+    font-family: var(--font-body); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel-soft);
   }
   .view-value { font-size: 13.5px; color: var(--ink); word-wrap: break-word; }
   .view-value.empty { color: var(--steel-soft); font-style: italic; }
@@ -372,7 +377,6 @@
     <div class="topbar">
       <div>
         <h2 id="view-title">All entries</h2>
-        <div class="sub" id="view-sub">program: all · team member: all · status: all · location: all</div>
       </div>
       <div class="topbar-actions">
         <button class="btn btn-ghost" id="export-btn">Export</button>
@@ -899,11 +903,7 @@
 
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
 
-    function filterSummary(key) {
-      return filters[key].size ? Array.from(filters[key]).join(', ') : 'all';
-    }
     el('view-title').textContent = filters.ProgramType.size === 0 ? 'All entries' : Array.from(filters.ProgramType).join(' & ') + ' entries';
-    el('view-sub').textContent = `program: ${filterSummary('ProgramType')} · team member: ${filterSummary('Rep')} · status: ${filterSummary('Status')} · location: ${filterSummary('Location')}`;
   }
 
   function renderAll() { renderFilterChips(); renderTable(); }

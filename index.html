@@ -1009,7 +1009,8 @@
     el('f-guest').value = record ? record.GuestName || '' : '';
     el('f-status').value = record ? record.Status || 'Voicemail/Email Left' : 'Voicemail/Email Left';
     el('f-rep').value = record ? record.Rep || repList[0] : (filters.Rep.size === 1 ? Array.from(filters.Rep)[0] : repList[0]);
-    el('f-location').value = record ? record.Location || 'DPS' : (filters.Location.size === 1 ? Array.from(filters.Location)[0] : 'DPS');
+    const defaultLocation = type === 'Outreach' ? 'Outreach' : 'DPS';
+    el('f-location').value = record ? record.Location || defaultLocation : (filters.Location.size === 1 ? Array.from(filters.Location)[0] : defaultLocation);
     el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';
     el('f-inquirydate').value = record ? toDateInput(record.InquiryDate) : (new Date().toISOString().slice(0,10));
     el('f-notes').value = record ? record.Notes || '' : '';

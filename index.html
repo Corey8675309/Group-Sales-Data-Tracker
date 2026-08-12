@@ -253,8 +253,6 @@
     padding: 5px 13px; border-radius: 999px; text-align: center;
     transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
   }
-  .row-actions button.view-link { background: var(--teal); color: #fff; }
-  .row-actions button.view-link:hover { background: var(--teal-deep); }
   .row-actions button.edit-link { border: 1px solid var(--steel); color: var(--steel); }
   .row-actions button.edit-link:hover { border-color: var(--ink); color: var(--ink); }
 
@@ -847,15 +845,16 @@
         <td class="mono">${computeHeadcount(r)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
-          <button class="view-link" data-view="${r.ID}">View</button><button class="edit-link" data-edit="${r.ID}">Edit</button><button class="row-delete-btn" data-quickdelete="${r.ID}" title="Delete entry">${TRASH_ICON}</button>
+          <button class="edit-link" data-edit="${r.ID}">Edit</button><button class="row-delete-btn" data-quickdelete="${r.ID}" title="Delete entry">${TRASH_ICON}</button>
         </td>
       `;
+      tr.onclick = (ev) => {
+        if (ev.target.closest('.row-actions')) return;
+        openViewModal(r);
+      };
       tbody.appendChild(tr);
     });
 
-    tbody.querySelectorAll('[data-view]').forEach(btn => {
-      btn.onclick = () => openViewModal(allRecords.find(r => r.ID === btn.dataset.view));
-    });
     tbody.querySelectorAll('[data-edit]').forEach(btn => {
       btn.onclick = () => openRecordModal(allRecords.find(r => r.ID === btn.dataset.edit));
     });

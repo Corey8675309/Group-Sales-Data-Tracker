@@ -327,6 +327,7 @@
     .form-grid { grid-template-columns: 1fr; }
   }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 </head>
 <body>
 
@@ -376,6 +377,7 @@
         <div class="sub" id="view-sub">program: all · team member: all · status: all · location: all</div>
       </div>
       <div class="topbar-actions">
+        <button class="btn btn-ghost" id="export-btn">Export</button>
         <button class="btn btn-primary" id="new-record-btn">+ New entry</button>
       </div>
     </div>
@@ -945,6 +947,77 @@
     el('conn-text').textContent = text;
     el('conn-dot').className = 'conn-dot' + (ok === true ? ' ok' : ok === false ? ' err' : '');
   }
+
+  // ---------- Export ----------
+  function formatDateForExport(val) {
+    if (!val) return '';
+    const d = new Date(val);
+    if (isNaN(d)) return String(val);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric', timeZone: 'UTC' });
+  }
+
+  function buildExportSection(type, rows) {
+    const guestLabel = GUEST_LABELS[type] || 'Guest name';
+    const eventLabel = EVENTDATE_LABELS[type] || 'Event date';
+    const typeFields = TYPE_FIELDS[type] || [];
+
+    const headers = [guestLabel, 'Team Member', 'Status', 'Location', eventLabel, 'Date Inquired / Spoken To']
+      .concat(typeFields.map(f => f.label))
+      .concat(['Notes']);
+
+    const dataRows = rows.map(r => {
+      const core = [
+        r.GuestName || '',
+        r.Rep || '',
+        r.Status || '',
+        r.Location || '',
+        formatDateForExport(r.EventDate),
+        formatDateForExport(r.InquiryDate)
+      ];
+      const typeVals = typeFields.map(f => cleanTextValue(r[f.key] || ''));
+      return core.concat(typeVals).concat([r.Notes || '']);
+    });
+
+    return { title: type.toUpperCase(), headers, dataRows };
+  }
+
+  function exportCurrentView() {
+    if (typeof XLSX === 'undefined') {
+      alert('Export library did not load — check your internet connection and try again.');
+      return;
+    }
+    const rows = getFiltered();
+    if (!rows.length) {
+      alert('No entries match the current filters — nothing to export.');
+      return;
+    }
+
+    // Only include sections for program types actually present in the
+    // current filtered view — e.g. filtering to Field Trip + Outreach
+    // means Birthday's section (headers and all) simply doesn't exist.
+    const sections = [];
+    PROGRAM_TYPES.forEach(type => {
+      const typeRows = rows.filter(r => r.ProgramType === type);
+      if (typeRows.length) sections.push(buildExportSection(type, typeRows));
+    });
+
+    const aoa = [];
+    sections.forEach((section, idx) => {
+      if (idx > 0) { aoa.push([]); aoa.push([]); }
+      aoa.push([section.title]);
+      aoa.push(section.headers);
+      section.dataRows.forEach(row => aoa.push(row));
+    });
+
+    const ws = XLSX.utils.aoa_to_sheet(aoa);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Bookings');
+
+    const dateStr = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `quill-export-${dateStr}.xlsx`);
+  }
+
+  el('export-btn').onclick = exportCurrentView;
 
   // ---------- Type picker ----------
   const typeOverlay = el('type-overlay');

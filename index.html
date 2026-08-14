@@ -369,6 +369,7 @@
 
     <div class="rail-footer">
       <div class="conn-status"><span class="conn-dot" id="conn-dot"></span><span id="conn-text">Not connected</span></div>
+      <div class="conn-status"><span class="conn-dot" id="webhook-dot"></span><span id="webhook-status-text">Calendly: —</span></div>
       <button class="settings-btn" id="open-settings">Settings</button>
     </div>
   </div>
@@ -945,6 +946,29 @@
     el('conn-dot').className = 'conn-dot' + (ok === true ? ' ok' : ok === false ? ' err' : '');
   }
 
+  // ---------- Calendly webhook status ----------
+  async function checkCalendlyWebhookStatus() {
+    if (!scriptUrl) {
+      el('webhook-status-text').textContent = 'Calendly: —';
+      el('webhook-dot').className = 'conn-dot';
+      return;
+    }
+    try {
+      const res = await fetch(scriptUrl + '?type=webhookstatus');
+      const data = await res.json();
+      if (data.active) {
+        el('webhook-status-text').textContent = 'Calendly: Active';
+        el('webhook-dot').className = 'conn-dot ok';
+      } else {
+        el('webhook-status-text').textContent = 'Calendly: Inactive';
+        el('webhook-dot').className = 'conn-dot err';
+      }
+    } catch (err) {
+      el('webhook-status-text').textContent = 'Calendly: Unknown';
+      el('webhook-dot').className = 'conn-dot';
+    }
+  }
+
   // ---------- Export ----------
   function formatDateForExport(val) {
     if (!val) return '';
@@ -1216,6 +1240,7 @@
     localStorage.setItem(LS_URL_KEY, scriptUrl);
     settingsOverlay.classList.remove('open');
     apiGet();
+    checkCalendlyWebhookStatus();
   };
 
   // ---------- Manage reps ----------
@@ -1278,8 +1303,15 @@
   // ---------- Init ----------
   renderFilterChips();
   renderTable();
-  if (scriptUrl) apiGet();
-  else setConn(false, 'Set your Apps Script URL in Settings');
+  if (scriptUrl) {
+    apiGet();
+    checkCalendlyWebhookStatus();
+    // Re-check periodically while the app stays open, so the indicator
+    // doesn't just reflect whatever was true at page load.
+    setInterval(checkCalendlyWebhookStatus, 5 * 60 * 1000);
+  } else {
+    setConn(false, 'Set your Apps Script URL in Settings');
+  }
 </script>
 
 </body>

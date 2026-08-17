@@ -1260,7 +1260,10 @@
   };
 
   // close overlays on backdrop click
-  [typeOverlay, recordOverlay, viewOverlay, settingsOverlay, manageOverlay].forEach(ov => {
+  // recordOverlay is deliberately excluded here — it holds a form with
+  // potentially unsaved work, so it should only close via its own
+  // Cancel/Save/Delete buttons, never by an accidental click outside it.
+  [typeOverlay, viewOverlay, settingsOverlay, manageOverlay].forEach(ov => {
     ov.addEventListener('click', e => { if (e.target === ov) ov.classList.remove('open'); });
   });
 

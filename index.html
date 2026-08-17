@@ -20,6 +20,7 @@
     --teal-bright: #00AEEF;
     --sage: #2E9B6D;
     --gold: #E0973D;
+    --clr-navy: #24344F;
     --rust: #D6553F;
     --clr-purple: #7C5CBF;
     --clr-pink: #D6577F;
@@ -419,7 +420,6 @@
             <th data-sort="Location">Location</th>
             <th data-sort="GuestName">Guest / Org</th>
             <th data-sort="EventDate">Event date</th>
-            <th data-sort="Headcount">Headcount</th>
             <th>Notes</th>
             <th></th>
           </tr>
@@ -603,6 +603,7 @@
       { key: 'FT_ArrivalTime', label: 'Arrival time' },
       { key: 'FT_DepartureTime', label: 'Departure time' },
       { key: 'FT_Transportation', label: 'Transportation method' },
+      { key: 'FT_TransportationNumber', label: 'Transportation number' },
       { key: 'FT_Lunch', label: 'Lunch' },
       { key: 'FT_Classes', label: 'Classes' },
       { key: 'FT_IMAX', label: 'IMAX' },
@@ -666,11 +667,45 @@
     'Kay': 'var(--sage)',
     'April': 'var(--clr-yellow)'
   };
+  // Same colors as raw hex — needed here so we can compute a darker hover
+  // shade for each, same as how --teal-deep relates to --teal.
+  const REP_ACCENT_HEX = {
+    'Corey': '#7C5CBF',
+    'Deanna': '#D6577F',
+    'Jeremy': '#3B7DDD',
+    'Kay': '#2E9B6D',
+    'April': '#C9A227'
+  };
+  function darkenHex(hex, amount) {
+    const num = parseInt(hex.replace('#', ''), 16);
+    let r = Math.max(0, (num >> 16) - Math.round(255 * amount));
+    let g = Math.max(0, ((num >> 8) & 0x00FF) - Math.round(255 * amount));
+    let b = Math.max(0, (num & 0x0000FF) - Math.round(255 * amount));
+    return '#' + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
+  }
+  // "Person mode" — when exactly one Team Member is filtered, the app's
+  // accent color (New entry button, Edit button, active chip fills, etc.)
+  // switches to match that person's color. Reverts to the normal theme
+  // color the moment zero or more-than-one reps are selected.
+  function updateAccentColor() {
+    const root = document.documentElement.style;
+    if (filters.Rep.size === 1) {
+      const repName = Array.from(filters.Rep)[0];
+      const base = REP_ACCENT_HEX[repName];
+      if (base) {
+        root.setProperty('--teal', base);
+        root.setProperty('--teal-deep', darkenHex(base, 0.15));
+        return;
+      }
+    }
+    root.removeProperty('--teal');
+    root.removeProperty('--teal-deep');
+  }
   const LOCATION_COLORS = {
     'DPS': 'var(--clr-blue)',
     'DPKH': 'var(--clr-purple)',
     'DPKR': 'var(--clr-purple)',
-    'Outreach': 'var(--gold)'
+    'Outreach': 'var(--clr-navy)'
   };
 
   function computeHeadcount(record) {
@@ -847,7 +882,6 @@
         <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(r.Location || '—')}</span></td>
         <td>${escapeHtml(r.GuestName || '—')}</td>
         <td class="mono">${formatDateDisplay(r.EventDate)}</td>
-        <td class="mono">${computeHeadcount(r)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
           <button class="edit-link" data-edit="${r.ID}">Edit</button><button class="row-delete-btn" data-quickdelete="${r.ID}" title="Delete entry">${TRASH_ICON}</button>
@@ -905,7 +939,7 @@
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
   }
 
-  function renderAll() { renderFilterChips(); renderTable(); }
+  function renderAll() { updateAccentColor(); renderFilterChips(); renderTable(); }
 
   document.querySelectorAll('th[data-sort]').forEach(th => {
     th.onclick = () => {
@@ -1304,6 +1338,7 @@
   applyTheme(localStorage.getItem(THEME_KEY) || 'light');
 
   // ---------- Init ----------
+  updateAccentColor();
   renderFilterChips();
   renderTable();
   if (scriptUrl) {

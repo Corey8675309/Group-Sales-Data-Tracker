@@ -189,6 +189,14 @@
   }
   .summary-line strong { color: var(--ink); font-weight: 600; }
 
+  .search-row { margin: 18px 28px 0; }
+  .search-row input {
+    width: 100%; font-family: var(--font-body); font-size: 13.5px;
+    padding: 10px 14px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+    border-radius: 6px;
+  }
+  .search-row input:focus { outline: none; border-color: var(--teal); }
+
   .date-filters {
     display: flex; align-items: flex-end; gap: 24px; flex-wrap: wrap;
     margin: 18px 28px 0; padding-bottom: 14px; border-bottom: 1px solid var(--line);
@@ -384,6 +392,10 @@
         <button class="btn btn-ghost" id="export-btn">Export</button>
         <button class="btn btn-primary" id="new-record-btn">+ New entry</button>
       </div>
+    </div>
+
+    <div class="search-row">
+      <input type="text" id="search-input" placeholder="Search">
     </div>
 
     <div class="date-filters">
@@ -642,6 +654,7 @@
     ProgramType: new Set(), Rep: new Set(), Status: new Set(), Location: new Set(),
     InquiryFrom: '', InquiryTo: '', EventFrom: '', EventTo: ''
   };
+  let searchQuery = '';
   let sortKey = 'EventDate';
   let sortDir = 'asc';
   let pendingType = null; // set when creating a new record, after type picker
@@ -808,14 +821,25 @@
     return String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   }
 
+  function recordMatchesSearch(record, query) {
+    if (!query) return true;
+    const haystack = Object.values(record)
+      .filter(v => v !== null && v !== undefined)
+      .join(' ')
+      .toLowerCase();
+    return haystack.includes(query);
+  }
+
   function getFiltered() {
+    const query = searchQuery.trim().toLowerCase();
     return allRecords.filter(r =>
       (filters.ProgramType.size === 0 || filters.ProgramType.has(r.ProgramType)) &&
       (filters.Rep.size === 0 || filters.Rep.has(r.Rep)) &&
       (filters.Status.size === 0 || filters.Status.has(r.Status)) &&
       (filters.Location.size === 0 || filters.Location.has(r.Location)) &&
       dateInRange(r.InquiryDate, filters.InquiryFrom, filters.InquiryTo) &&
-      dateInRange(r.EventDate, filters.EventFrom, filters.EventTo)
+      dateInRange(r.EventDate, filters.EventFrom, filters.EventTo) &&
+      recordMatchesSearch(r, query)
     );
   }
 
@@ -1336,6 +1360,17 @@
   };
 
   applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+
+  // ---------- Search ----------
+  let searchDebounceTimer = null;
+  el('search-input').addEventListener('input', (e) => {
+    clearTimeout(searchDebounceTimer);
+    const value = e.target.value;
+    searchDebounceTimer = setTimeout(() => {
+      searchQuery = value;
+      renderTable();
+    }, 150);
+  });
 
   // ---------- Init ----------
   updateAccentColor();

@@ -430,7 +430,7 @@
             <th data-sort="Rep">Team Member</th>
             <th data-sort="Status">Status</th>
             <th data-sort="Location">Location</th>
-            <th data-sort="GuestName">Guest / Org</th>
+            <th data-sort="GuestName">Guest</th>
             <th data-sort="EventDate">Event date</th>
             <th>Notes</th>
             <th></th>
@@ -721,6 +721,22 @@
     'Outreach': 'var(--clr-navy)'
   };
 
+  // On the home table specifically, show a person's name rather than the
+  // org name for Field Trip / Outreach — so scanning the list (and
+  // comparing against Calendly's own list, which always shows the
+  // person's name) reads consistently across all three program types.
+  // The underlying GuestName field (the org name) is untouched — still
+  // used in the View screen, search, and sorting.
+  function getTableGuestDisplay(record) {
+    if (record.ProgramType === 'Field Trip') {
+      return record.FT_ContactName || record.GuestName || '—';
+    }
+    if (record.ProgramType === 'Outreach') {
+      return record.OR_PrimaryContact || record.GuestName || '—';
+    }
+    return record.GuestName || '—';
+  }
+
   function computeHeadcount(record) {
     const type = record.ProgramType;
     if (type === 'Field Trip') return (Number(record.FT_NumStudents) || 0) + (Number(record.FT_NumChaperones) || 0);
@@ -904,7 +920,7 @@
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
         <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(r.Location || '—')}</span></td>
-        <td>${escapeHtml(r.GuestName || '—')}</td>
+        <td>${escapeHtml(getTableGuestDisplay(r))}</td>
         <td class="mono">${formatDateDisplay(r.EventDate)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">

@@ -291,6 +291,11 @@
     font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--steel-soft); margin: 18px 0 10px; padding-top: 14px; border-top: 1px solid var(--line);
   }
+  .subsection-divider {
+    font-family: var(--font-body); font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--teal); font-weight: 600; margin: 14px 0 8px; grid-column: 1 / -1;
+  }
+  .subsection-divider:first-child { margin-top: 0; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
   .modal-danger { margin-right: auto; background: transparent; border: none; color: var(--rust); font-family: var(--font-body); font-size: 11.5px; cursor: pointer; }
 
@@ -619,7 +624,8 @@
       { key: 'FT_Lunch', label: 'Lunch' },
       { key: 'FT_Classes', label: 'Classes' },
       { key: 'FT_IMAX', label: 'IMAX' },
-      { key: 'FT_CartNum', label: 'Cart #' }
+      { key: 'FT_CartNum', label: 'Cart #' },
+      { key: 'FT_PurchaseOrder', label: 'Purchase order' }
     ],
     'Birthday': [
       { key: 'BD_ContactNumber', label: 'Contact number' },
@@ -643,6 +649,23 @@
       { key: 'OR_EventStartTimes', label: 'Event start time(s)' },
       { key: 'OR_Program', label: 'Program' },
       { key: 'OR_CartNum', label: 'Cart #' }
+    ]
+  };
+
+  // Optional sub-grouping for the type-specific fields, used by both the
+  // edit form and the View screen. A type not listed here (Birthday,
+  // Outreach) just falls back to one flat list, same as before. Field
+  // Trip's has enough fields that grouping them makes the form/view much
+  // easier to scan. "includeNotes: true" on a section means the shared
+  // Notes field gets folded visually into that section in the View screen
+  // (the edit form's Notes box stays in its normal fixed spot regardless).
+  const TYPE_SECTIONS = {
+    'Field Trip': [
+      { title: 'Contact Info', keys: ['FT_ContactName', 'FT_ContactNumber', 'FT_ContactEmail', 'FT_SchoolDistrict', 'Title1', 'FT_DayOfContact', 'FT_DayOfNumber', 'FT_PaymentContact', 'FT_PaymentEmail'] },
+      { title: 'Headcount', keys: ['FT_NumStudents', 'FT_NumChaperones', 'FT_GradeLevel'] },
+      { title: 'Transportation Info', keys: ['FT_ArrivalTime', 'FT_DepartureTime', 'FT_Transportation', 'FT_TransportationNumber'] },
+      { title: 'Optional Add-Ons', keys: ['FT_Lunch', 'FT_Classes', 'FT_IMAX'] },
+      { title: 'Bookkeeping', keys: ['FT_CartNum', 'FT_PurchaseOrder'], includeNotes: true }
     ]
   };
 
@@ -1138,36 +1161,53 @@
   // ---------- Record modal ----------
   const recordOverlay = el('record-overlay');
 
+  function buildFieldRow(f, record) {
+    const wrap = document.createElement('div');
+    wrap.className = 'form-row';
+    const label = document.createElement('label');
+    label.textContent = f.label;
+    let input;
+    if (f.type === 'select') {
+      input = document.createElement('select');
+      (f.options || []).forEach(opt => {
+        const o = document.createElement('option');
+        o.value = opt; o.textContent = opt;
+        input.appendChild(o);
+      });
+    } else {
+      input = document.createElement('input');
+      input.type = f.type === 'number' ? 'number' : (f.type === 'time' ? 'time' : 'text');
+    }
+    input.id = 'tf-' + f.key;
+    input.dataset.key = f.key;
+    if (record && record[f.key] !== undefined) input.value = cleanTextValue(record[f.key]);
+    wrap.appendChild(label);
+    wrap.appendChild(input);
+    return wrap;
+  }
+
   function renderTypeFields(type, record) {
     const container = el('type-fields-container');
     container.innerHTML = '';
     const fields = TYPE_FIELDS[type] || [];
     el('type-fields-divider').style.display = fields.length ? 'block' : 'none';
 
-    fields.forEach(f => {
-      const wrap = document.createElement('div');
-      wrap.className = 'form-row';
-      const label = document.createElement('label');
-      label.textContent = f.label;
-      let input;
-      if (f.type === 'select') {
-        input = document.createElement('select');
-        (f.options || []).forEach(opt => {
-          const o = document.createElement('option');
-          o.value = opt; o.textContent = opt;
-          input.appendChild(o);
+    const sections = TYPE_SECTIONS[type];
+    if (sections) {
+      const byKey = {};
+      fields.forEach(f => { byKey[f.key] = f; });
+      sections.forEach(section => {
+        const heading = document.createElement('div');
+        heading.className = 'subsection-divider';
+        heading.textContent = section.title;
+        container.appendChild(heading);
+        section.keys.forEach(key => {
+          if (byKey[key]) container.appendChild(buildFieldRow(byKey[key], record));
         });
-      } else {
-        input = document.createElement('input');
-        input.type = f.type === 'number' ? 'number' : (f.type === 'time' ? 'time' : 'text');
-      }
-      input.id = 'tf-' + f.key;
-      input.dataset.key = f.key;
-      if (record && record[f.key] !== undefined) input.value = cleanTextValue(record[f.key]);
-      wrap.appendChild(label);
-      wrap.appendChild(input);
-      container.appendChild(wrap);
-    });
+      });
+    } else {
+      fields.forEach(f => container.appendChild(buildFieldRow(f, record)));
+    }
   }
 
   function openRecordModal(record, forcedType) {
@@ -1282,15 +1322,31 @@
     html += '</div>';
 
     const fields = TYPE_FIELDS[type] || [];
-    if (fields.length) {
-      html += '<div class="view-section-title">Program details</div><div class="view-grid">';
-      fields.forEach(f => { html += vField(f.label, cleanTextValue(record[f.key])); });
+    const sections = TYPE_SECTIONS[type];
+
+    if (sections) {
+      const byKey = {};
+      fields.forEach(f => { byKey[f.key] = f; });
+      sections.forEach(section => {
+        html += `<div class="view-section-title">${escapeHtml(section.title)}</div><div class="view-grid">`;
+        section.keys.forEach(key => {
+          if (byKey[key]) html += vField(byKey[key].label, cleanTextValue(record[key]));
+        });
+        if (section.includeNotes) {
+          html += vField('Notes', record.Notes, { full: true, notes: true });
+        }
+        html += '</div>';
+      });
+    } else {
+      if (fields.length) {
+        html += '<div class="view-section-title">Program details</div><div class="view-grid">';
+        fields.forEach(f => { html += vField(f.label, cleanTextValue(record[f.key])); });
+        html += '</div>';
+      }
+      html += '<div class="view-section-title">Notes</div><div class="view-grid">';
+      html += vField('', record.Notes, { full: true, notes: true });
       html += '</div>';
     }
-
-    html += '<div class="view-section-title">Notes</div><div class="view-grid">';
-    html += vField('', record.Notes, { full: true, notes: true });
-    html += '</div>';
 
     el('view-modal-body').innerHTML = html;
     viewOverlay.classList.add('open');

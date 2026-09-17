@@ -248,6 +248,8 @@
   .program-tag { font-family: var(--font-body); font-size: 10.5px; color: var(--steel); }
 
   .status-tab-col { width: 0; padding: 0 !important; }
+  .calltime-col { display: none; }
+  #records-table.show-calltime .calltime-col { display: table-cell; }
   .row-delete-btn {
     all: unset; cursor: pointer; display: flex; align-items: center; justify-content: center;
     width: 22px; height: 22px; color: var(--teal); opacity: 0.55;
@@ -438,6 +440,7 @@
             <th data-sort="Location">Location</th>
             <th data-sort="GuestName">Guest</th>
             <th data-sort="EventDate">Event date</th>
+            <th data-sort="CallTime" class="calltime-col">Call time</th>
             <th>Notes</th>
             <th></th>
           </tr>
@@ -938,6 +941,13 @@
   function finishRenderTable(rows) {
     const tbody = el('records-tbody');
 
+    // Call time column only makes sense when the list is narrowed to
+    // exactly "Calendly Call" status alone — mixed with other statuses,
+    // it'd mostly be blank, since the time stops being tracked the moment
+    // a status changes.
+    const showCallTime = filters.Status.size === 1 && filters.Status.has('Calendly Call');
+    el('records-table').classList.toggle('show-calltime', showCallTime);
+
     // Capture current row positions (for rows sticking around) so we can
     // shift them smoothly into their new spot instead of snapping.
     const prevRects = {};
@@ -959,6 +969,7 @@
         <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(getTableLocationDisplay(r))}</span></td>
         <td>${escapeHtml(getTableGuestDisplay(r))}</td>
         <td class="mono">${formatDateDisplay(r.EventDate)}</td>
+        <td class="mono calltime-col">${escapeHtml(r.CallTime || '—')}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>
         <td class="row-actions">
           <button class="edit-link" data-edit="${r.ID}">Edit</button><button class="row-delete-btn" data-quickdelete="${r.ID}" title="Delete entry">${TRASH_ICON}</button>

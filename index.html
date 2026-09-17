@@ -214,9 +214,13 @@
   .btn-clear {
     all: unset; cursor: pointer; font-family: var(--font-body); font-size: 10.5px;
     color: var(--steel); border: 1px solid var(--line); padding: 4px 10px; border-radius: 999px;
-    transition: color 0.15s ease, border-color 0.15s ease;
+    transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   }
   .btn-clear:hover { color: var(--ink); border-color: var(--steel); }
+  #today-inquiry-btn.active {
+    background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600;
+  }
+  #today-inquiry-btn.active:hover { color: #fff; }
 
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -948,6 +952,9 @@
     const showCallTime = filters.Status.size === 1 && filters.Status.has('Calendly Call');
     el('records-table').classList.toggle('show-calltime', showCallTime);
 
+    const todayStr = new Date().toISOString().slice(0, 10);
+    el('today-inquiry-btn').classList.toggle('active', filters.InquiryFrom === todayStr && filters.InquiryTo === todayStr);
+
     // Capture current row positions (for rows sticking around) so we can
     // shift them smoothly into their new spot instead of snapping.
     const prevRects = {};
@@ -1438,9 +1445,14 @@
   };
   el('today-inquiry-btn').onclick = () => {
     const todayStr = new Date().toISOString().slice(0, 10);
-    filters.InquiryFrom = filters.InquiryTo = todayStr;
-    el('filter-inquiry-from').value = todayStr;
-    el('filter-inquiry-to').value = todayStr;
+    if (filters.InquiryFrom === todayStr && filters.InquiryTo === todayStr) {
+      // already showing just today — click again to turn it off
+      filters.InquiryFrom = filters.InquiryTo = '';
+    } else {
+      filters.InquiryFrom = filters.InquiryTo = todayStr;
+    }
+    el('filter-inquiry-from').value = filters.InquiryFrom;
+    el('filter-inquiry-to').value = filters.InquiryTo;
     renderTable();
   };
   el('clear-event-btn').onclick = () => {

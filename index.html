@@ -1332,6 +1332,9 @@
     html += vField('Location', record.Location);
     html += vField(EVENTDATE_LABELS[type] || 'Event date', formatDateDisplay(record.EventDate));
     html += vField('Date inquired / spoken to', formatDateDisplay(record.InquiryDate));
+    if (record.Status === 'Calendly Call' && record.CallTime) {
+      html += vField('Call time', record.CallTime);
+    }
     html += vField('Headcount', computeHeadcount(record));
     html += '</div>';
 

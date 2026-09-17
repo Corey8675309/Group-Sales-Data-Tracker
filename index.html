@@ -760,6 +760,19 @@
     return record.GuestName || '—';
   }
 
+  // The Location column shows the actual DPS/DPKH/DPKR/Outreach value for
+  // Field Trip and Birthday, same as always — but for Outreach specifically,
+  // "Outreach" there just repeats what the Program column already says, so
+  // this shows the school/org name instead. Purely a display swap: the
+  // underlying Location value (used for filtering, and for the color tint
+  // below) stays "Outreach" either way.
+  function getTableLocationDisplay(record) {
+    if (record.ProgramType === 'Outreach') {
+      return record.GuestName || 'Outreach';
+    }
+    return record.Location || '—';
+  }
+
   function computeHeadcount(record) {
     const type = record.ProgramType;
     if (type === 'Field Trip') return (Number(record.FT_NumStudents) || 0) + (Number(record.FT_NumChaperones) || 0);
@@ -942,7 +955,7 @@
         <td><span class="program-tag">${escapeHtml(r.ProgramType || '—')}</span></td>
         <td>${escapeHtml(r.Rep || '—')}</td>
         <td><span class="${badgeClass(r.Status)}">${escapeHtml(r.Status || '—')}</span></td>
-        <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(r.Location || '—')}</span></td>
+        <td><span style="color:${LOCATION_COLORS[r.Location] || 'inherit'}; font-weight:600;">${escapeHtml(getTableLocationDisplay(r))}</span></td>
         <td>${escapeHtml(getTableGuestDisplay(r))}</td>
         <td class="mono">${formatDateDisplay(r.EventDate)}</td>
         <td class="notes" title="${escapeHtml(r.Notes || '')}">${escapeHtml(r.Notes || '—')}</td>

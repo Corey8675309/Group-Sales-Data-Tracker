@@ -411,6 +411,7 @@
           <span class="sep">–</span>
           <input type="date" id="filter-inquiry-to">
           <button class="btn-clear" id="clear-inquiry-btn">Clear</button>
+          <button class="btn-clear" id="today-inquiry-btn">Today</button>
         </div>
       </div>
       <div class="date-filter-group">
@@ -1419,6 +1420,13 @@
     filters.InquiryFrom = filters.InquiryTo = '';
     el('filter-inquiry-from').value = '';
     el('filter-inquiry-to').value = '';
+    renderTable();
+  };
+  el('today-inquiry-btn').onclick = () => {
+    const todayStr = new Date().toISOString().slice(0, 10);
+    filters.InquiryFrom = filters.InquiryTo = todayStr;
+    el('filter-inquiry-from').value = todayStr;
+    el('filter-inquiry-to').value = todayStr;
     renderTable();
   };
   el('clear-event-btn').onclick = () => {

@@ -268,6 +268,15 @@
   }
   .fall-scenery svg { width: 100%; height: 100%; display: block; }
 
+  /* Fall's Dark variant gets a Halloween flip: the deciduous tree loses
+     its leaves, both pumpkins become jack-o'-lanterns, and a moon shows
+     up in the sky. Fall's Light variant is untouched. */
+  .bare-branches, .jacko-face, .fall-moon { display: none; }
+  :root[data-theme="fall-dark"] .leaf-canopy { display: none; }
+  :root[data-theme="fall-dark"] .bare-branches,
+  :root[data-theme="fall-dark"] .jacko-face,
+  :root[data-theme="fall-dark"] .fall-moon { display: inline; }
+
   /* Decorative footer scene — only shown in either Christmas variant */
   .christmas-scenery { display: none; }
   :root[data-theme="christmas"] .christmas-scenery,
@@ -707,14 +716,34 @@
         <path d="M0,68 Q800,52 1600,66 T2400,60 L2400,90 L0,90 Z" fill="#B5732E"/>
 
         <rect x="146" y="58" width="8" height="22" fill="#5C3D24"/>
-        <circle cx="135" cy="50" r="14" fill="#B5541E"/>
-        <circle cx="165" cy="50" r="14" fill="#9C4A1F"/>
-        <circle cx="150" cy="40" r="16" fill="#C1652E"/>
+        <circle cx="135" cy="50" r="14" fill="#B5541E" class="leaf-canopy"/>
+        <circle cx="165" cy="50" r="14" fill="#9C4A1F" class="leaf-canopy"/>
+        <circle cx="150" cy="40" r="16" fill="#C1652E" class="leaf-canopy"/>
+        <g class="bare-branches">
+          <line x1="150" y1="58" x2="130" y2="38" stroke="#4A2E1E" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="150" y1="58" x2="150" y2="32" stroke="#4A2E1E" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="150" y1="58" x2="170" y2="38" stroke="#4A2E1E" stroke-width="2.5" stroke-linecap="round"/>
+          <line x1="140" y1="46" x2="128" y2="30" stroke="#4A2E1E" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="160" y1="46" x2="172" y2="30" stroke="#4A2E1E" stroke-width="1.8" stroke-linecap="round"/>
+        </g>
+
+        <circle cx="850" cy="22" r="12" fill="#F2E9C9" class="fall-moon"/>
 
         <rect x="496" y="68" width="8" height="14" fill="#5C3D24"/>
-        <path d="M500,70 L480,50 L520,50 Z" fill="#9C4A1F"/>
-        <path d="M500,58 L484,40 L516,40 Z" fill="#B5541E"/>
-        <path d="M500,46 L488,30 L512,30 Z" fill="#C1652E"/>
+        <path d="M500,50 L480,70 L520,70 Z" fill="#9C4A1F" class="leaf-canopy"/>
+        <path d="M500,40 L484,58 L516,58 Z" fill="#B5541E" class="leaf-canopy"/>
+        <path d="M500,18 L488,46 L512,46 Z" fill="#C1652E" class="leaf-canopy"/>
+        <g class="bare-branches">
+          <line x1="500" y1="68" x2="500" y2="20" stroke="#4A2E1E" stroke-width="2" stroke-linecap="round"/>
+          <line x1="500" y1="64" x2="478" y2="72" stroke="#4A2E1E" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="500" y1="64" x2="522" y2="72" stroke="#4A2E1E" stroke-width="1.8" stroke-linecap="round"/>
+          <line x1="500" y1="52" x2="482" y2="60" stroke="#4A2E1E" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="500" y1="52" x2="518" y2="60" stroke="#4A2E1E" stroke-width="1.6" stroke-linecap="round"/>
+          <line x1="500" y1="40" x2="486" y2="48" stroke="#4A2E1E" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="500" y1="40" x2="514" y2="48" stroke="#4A2E1E" stroke-width="1.4" stroke-linecap="round"/>
+          <line x1="500" y1="28" x2="492" y2="34" stroke="#4A2E1E" stroke-width="1.2" stroke-linecap="round"/>
+          <line x1="500" y1="28" x2="508" y2="34" stroke="#4A2E1E" stroke-width="1.2" stroke-linecap="round"/>
+        </g>
 
         <path d="M1164,66 Q1178,58 1174,44" stroke="#161616" stroke-width="5" fill="none" stroke-linecap="round"/>
         <ellipse cx="1150" cy="68" rx="16" ry="20" fill="#161616"/>
@@ -730,11 +759,24 @@
         <line x1="1789" y1="50" x2="1789" y2="78" stroke="#B5541E" stroke-width="2"/>
         <line x1="1800" y1="47" x2="1800" y2="81" stroke="#B5541E" stroke-width="2"/>
         <line x1="1811" y1="50" x2="1811" y2="78" stroke="#B5541E" stroke-width="2"/>
+        <g class="jacko-face">
+          <ellipse cx="1800" cy="64" rx="17" ry="12" fill="#F7D98A" opacity="0.55"/>
+          <path d="M1793,58 L1797,64 L1789,64 Z" fill="#3A2214"/>
+          <path d="M1807,58 L1811,64 L1803,64 Z" fill="#3A2214"/>
+          <path d="M1800,60 L1803,66 L1797,66 Z" fill="#3A2214"/>
+          <path d="M1790,70 L1793,66 L1796,70 L1799,66 L1802,70 L1805,66 L1808,70 Z" fill="#3A2214"/>
+        </g>
 
         <rect x="1857" y="54" width="5" height="7" rx="1.5" fill="#5C3D24"/>
         <ellipse cx="1860" cy="68" rx="13" ry="10" fill="#C1652E"/>
         <line x1="1854" y1="60" x2="1854" y2="76" stroke="#9C4A1F" stroke-width="1.5"/>
         <line x1="1866" y1="60" x2="1866" y2="76" stroke="#9C4A1F" stroke-width="1.5"/>
+        <g class="jacko-face">
+          <ellipse cx="1860" cy="68" rx="10" ry="7" fill="#F7D98A" opacity="0.55"/>
+          <path d="M1855,64 L1858,68 L1852,68 Z" fill="#3A2214"/>
+          <path d="M1865,64 L1868,68 L1862,68 Z" fill="#3A2214"/>
+          <path d="M1857,71 L1859,69 L1861,71 L1863,69 L1865,71 Z" fill="#3A2214"/>
+        </g>
       </svg>
     </div>
 

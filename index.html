@@ -187,6 +187,14 @@
     animation-name: leaf-fall; animation-timing-function: ease-in;
     animation-fill-mode: forwards;
   }
+
+  /* Decorative footer scene — only shown in either Fall variant */
+  .fall-scenery { display: none; }
+  :root[data-theme="fall"] .fall-scenery,
+  :root[data-theme="fall-dark"] .fall-scenery {
+    display: block; flex-shrink: 0; height: 80px; pointer-events: none; opacity: 0.9;
+  }
+  .fall-scenery svg { width: 100%; height: 100%; display: block; }
   @keyframes leaf-fall {
     0% { transform: translateY(0) rotate(0deg); opacity: 1; }
     100% { transform: translateY(105vh) rotate(360deg); opacity: 0.2; }
@@ -565,6 +573,33 @@
         <div class="tag">No entries match</div>
         <div>Try widening the filters on the left, or add a new record.</div>
       </div>
+    </div>
+
+    <div class="fall-scenery" aria-hidden="true">
+      <svg viewBox="0 0 1200 140" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M0,90 Q300,50 600,80 T1200,70 L1200,140 L0,140 Z" fill="#D9A15C"/>
+        <path d="M0,120 Q400,90 800,115 T1200,105 L1200,140 L0,140 Z" fill="#B5732E"/>
+
+        <rect x="90" y="95" width="10" height="35" fill="#5C3D24"/>
+        <circle cx="75" cy="95" r="22" fill="#B5541E"/>
+        <circle cx="115" cy="95" r="22" fill="#9C4A1F"/>
+        <circle cx="95" cy="82" r="26" fill="#C1652E"/>
+
+        <path d="M566,120 Q582,110 578,93" stroke="#161616" stroke-width="6" fill="none" stroke-linecap="round"/>
+        <ellipse cx="550" cy="118" rx="18" ry="22" fill="#161616"/>
+        <circle cx="550" cy="90" r="14" fill="#161616"/>
+        <path d="M540,80 L536,66 L547,78 Z" fill="#161616"/>
+        <path d="M560,80 L564,66 L553,78 Z" fill="#161616"/>
+        <circle cx="545" cy="90" r="1.6" fill="#E8B84B"/>
+        <circle cx="555" cy="90" r="1.6" fill="#E8B84B"/>
+
+        <path d="M1006,92 Q1016,84 1010,76" stroke="#6B8F4E" stroke-width="3" fill="none" stroke-linecap="round"/>
+        <rect x="996" y="90" width="8" height="12" rx="2" fill="#5C3D24"/>
+        <ellipse cx="1000" cy="115" rx="26" ry="20" fill="#D9853D"/>
+        <line x1="985" y1="102" x2="985" y2="128" stroke="#B5541E" stroke-width="2"/>
+        <line x1="1000" y1="98" x2="1000" y2="132" stroke="#B5541E" stroke-width="2"/>
+        <line x1="1015" y1="102" x2="1015" y2="128" stroke="#B5541E" stroke-width="2"/>
+      </svg>
     </div>
   </div>
 </div>

@@ -904,6 +904,7 @@
 
     <div class="modal-actions">
       <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete entry</button>
+      <button class="btn btn-ghost" id="convert-record-btn" style="display:none;"></button>
       <button class="btn btn-ghost" id="cancel-record-btn">Cancel</button>
       <button class="btn btn-primary" id="save-record-btn">Save</button>
     </div>
@@ -1040,6 +1041,7 @@
       { key: 'OR_NumStudents', label: 'Number of students', type: 'number' },
       { key: 'OR_GradeLevel', label: 'Grade level' },
       { key: 'OR_EventStartTimes', label: 'Event start time(s)' },
+      { key: 'OR_AlternateDates', label: 'Alternate dates' },
       { key: 'OR_Program', label: 'Program' },
       { key: 'OR_ProposalStatus', label: 'Proposal status', type: 'select', options: ['No Proposal', 'Proposal Created', 'Proposal Sent'] },
       { key: 'OR_CartNum', label: 'Cart #' }
@@ -1641,6 +1643,19 @@
     el('record-modal-kicker').textContent = type;
     el('delete-record-btn').style.display = record ? 'inline-block' : 'none';
 
+    const convertBtn = el('convert-record-btn');
+    if (record && record.ProgramType === 'Field Trip') {
+      convertBtn.style.display = 'inline-block';
+      convertBtn.textContent = 'Convert to Outreach';
+      convertBtn.dataset.convertTo = 'Outreach';
+    } else if (record && record.ProgramType === 'Outreach') {
+      convertBtn.style.display = 'inline-block';
+      convertBtn.textContent = 'Convert to Field Trip';
+      convertBtn.dataset.convertTo = 'Field Trip';
+    } else {
+      convertBtn.style.display = 'none';
+    }
+
     el('f-id').value = record ? record.ID : '';
     el('f-programtype').value = type;
     el('f-guest-label').textContent = GUEST_LABELS[type] || 'Guest name';
@@ -1718,6 +1733,74 @@
       await apiGet();
     } catch (err) {
       alert('Could not delete. Check your connection in Settings.');
+    }
+  };
+
+  // ---------- Convert Field Trip <-> Outreach ----------
+  // Fields with a real equivalent on the other side map straight across.
+  // Title1 isn't listed here since both types use the exact same key —
+  // it already carries over untouched with no mapping needed.
+  const FIELD_TRIP_OUTREACH_FIELD_MAP = {
+    'FT_ContactName': 'OR_PrimaryContact',
+    'FT_ContactEmail': 'OR_PrimaryEmail',
+    'FT_ContactNumber': 'OR_PrimaryNumber',
+    'FT_SchoolDistrict': 'OR_SchoolDistrict',
+    'FT_GradeLevel': 'OR_GradeLevel',
+    'FT_CartNum': 'OR_CartNum'
+  };
+  const OUTREACH_FIELD_TRIP_FIELD_MAP = Object.fromEntries(
+    Object.entries(FIELD_TRIP_OUTREACH_FIELD_MAP).map(([k, v]) => [v, k])
+  );
+
+  // Anything on the source type that DOESN'T have an equivalent slot on
+  // the new type gets written into Notes instead of silently dropped, then
+  // cleared from its old (now-irrelevant) column.
+  function convertRecordProgramType(record, toType) {
+    const fromType = record.ProgramType;
+    const map = fromType === 'Field Trip' ? FIELD_TRIP_OUTREACH_FIELD_MAP : OUTREACH_FIELD_TRIP_FIELD_MAP;
+    const newRecord = Object.assign({}, record);
+    newRecord.ProgramType = toType;
+
+    const sourceFields = TYPE_FIELDS[fromType] || [];
+    const preserved = [];
+
+    sourceFields.forEach(f => {
+      const key = f.key;
+      if (key === 'Title1') return; // shared field, carries over as-is
+      const value = record[key];
+      const mappedKey = map[key];
+      if (mappedKey) {
+        newRecord[mappedKey] = value || '';
+        newRecord[key] = '';
+      } else {
+        if (value) preserved.push(f.label + ': ' + value);
+        newRecord[key] = '';
+      }
+    });
+
+    if (preserved.length) {
+      const note = 'Converted from ' + fromType + ' — preserved details: ' + preserved.join(' | ');
+      newRecord.Notes = newRecord.Notes ? (newRecord.Notes + ' | ' + note) : note;
+    }
+    return newRecord;
+  }
+
+  el('convert-record-btn').onclick = async () => {
+    const id = el('f-id').value;
+    if (!id) return;
+    const record = allRecords.find(r => r.ID === id);
+    if (!record) return;
+    const toType = el('convert-record-btn').dataset.convertTo;
+
+    if (!confirm('Convert this entry from ' + record.ProgramType + ' to ' + toType + '? Fields that don\'t apply to ' + toType + ' will be noted in Notes instead of lost. Continue?')) return;
+
+    const converted = convertRecordProgramType(record, toType);
+    try {
+      await apiPost({ action: 'update', record: converted });
+      closeRecordModal();
+      await apiGet();
+    } catch (err) {
+      alert('Could not convert. Check your connection in Settings.');
     }
   };
 

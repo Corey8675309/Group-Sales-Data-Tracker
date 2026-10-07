@@ -977,7 +977,7 @@
   const LS_URL_KEY = 'gst_script_url';
   const LS_REPS_KEY = 'gst_reps';
 
-  const DEFAULT_REPS = ['Corey', 'Deanna', 'Jeremy', 'Kay', 'April'];
+  const DEFAULT_REPS = ['Corey', 'Deanna', 'Jeremy', 'Kay', 'April', 'Carole'];
   const PROGRAM_TYPES = ['Field Trip', 'Birthday', 'Outreach'];
   const LOCATIONS = ['DPS', 'DPKH', 'DPKR', 'Outreach'];
 
@@ -1097,7 +1097,8 @@
     'Deanna': 'var(--clr-pink)',
     'Jeremy': 'var(--clr-blue)',
     'Kay': 'var(--sage)',
-    'April': 'var(--clr-yellow)'
+    'April': 'var(--clr-yellow)',
+    'Carole': 'var(--clr-red)'
   };
   // Same colors as raw hex — needed here so we can compute a darker hover
   // shade for each, same as how --teal-deep relates to --teal.
@@ -1106,7 +1107,8 @@
     'Deanna': '#D6577F',
     'Jeremy': '#3B7DDD',
     'Kay': '#2E9B6D',
-    'April': '#C9A227'
+    'April': '#C9A227',
+    'Carole': '#D9483C'
   };
   function darkenHex(hex, amount) {
     const num = parseInt(hex.replace('#', ''), 16);

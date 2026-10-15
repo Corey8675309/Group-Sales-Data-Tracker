@@ -434,10 +434,12 @@
     transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
   }
   .btn-clear:hover { color: var(--ink); border-color: var(--steel); }
-  #today-inquiry-btn.active {
+  #today-inquiry-btn.active,
+  #sfo-toggle-btn.active {
     background: var(--teal); border-color: var(--teal); color: #fff; font-weight: 600;
   }
-  #today-inquiry-btn.active:hover { color: #fff; }
+  #today-inquiry-btn.active:hover,
+  #sfo-toggle-btn.active:hover { color: #fff; }
 
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -683,6 +685,7 @@
           <button class="btn-clear" id="clear-event-btn">Clear</button>
         </div>
       </div>
+      <button class="btn-clear" id="sfo-toggle-btn" title="Show only entries using SFO" style="margin-left:auto;">SFO</button>
     </div>
 
     <div class="summary-line" id="summary-line">0 entries shown</div>
@@ -1020,7 +1023,10 @@
       { key: 'FT_Classes', label: 'Classes' },
       { key: 'FT_IMAX', label: 'IMAX' },
       { key: 'FT_CartNum', label: 'Cart #' },
-      { key: 'FT_PurchaseOrder', label: 'Purchase order' }
+      { key: 'FT_PurchaseOrder', label: 'Purchase order' },
+      { key: 'UsingSFO', label: 'Using SFO', type: 'select', options: ['No', 'Yes'] },
+      { key: 'ASCARName', label: 'ASCAR name' },
+      { key: 'ASCAREmail', label: 'ASCAR email' }
     ],
     'Birthday': [
       { key: 'BD_ContactNumber', label: 'Contact number' },
@@ -1045,7 +1051,10 @@
       { key: 'OR_AlternateDates', label: 'Alternate dates' },
       { key: 'OR_Program', label: 'Program' },
       { key: 'OR_ProposalStatus', label: 'Proposal status', type: 'select', options: ['No Proposal', 'Proposal Created', 'Proposal Sent'] },
-      { key: 'OR_CartNum', label: 'Cart #' }
+      { key: 'OR_CartNum', label: 'Cart #' },
+      { key: 'UsingSFO', label: 'Using SFO', type: 'select', options: ['No', 'Yes'] },
+      { key: 'ASCARName', label: 'ASCAR name' },
+      { key: 'ASCAREmail', label: 'ASCAR email' }
     ]
   };
 
@@ -1062,7 +1071,7 @@
       { title: 'Headcount', keys: ['FT_NumStudents', 'FT_NumChaperones', 'FT_GradeLevel'] },
       { title: 'Transportation Info', keys: ['FT_ArrivalTime', 'FT_DepartureTime', 'FT_Transportation', 'FT_TransportationNumber'] },
       { title: 'Optional Add-Ons', keys: ['FT_Lunch', 'FT_Classes', 'FT_IMAX'] },
-      { title: 'Bookkeeping', keys: ['FT_CartNum', 'FT_PurchaseOrder'], includeNotes: true }
+      { title: 'Bookkeeping', keys: ['FT_CartNum', 'FT_PurchaseOrder', 'UsingSFO', 'ASCARName', 'ASCAREmail'], includeNotes: true }
     ]
   };
 
@@ -1075,6 +1084,7 @@
     InquiryFrom: '', InquiryTo: '', EventFrom: '', EventTo: ''
   };
   let searchQuery = '';
+  let sfoOnly = false;
   let sortKey = 'EventDate';
   let sortDir = 'asc';
   let pendingType = null; // set when creating a new record, after type picker
@@ -1297,6 +1307,7 @@
       (filters.Location.size === 0 || filters.Location.has(r.Location)) &&
       dateInRange(r.InquiryDate, filters.InquiryFrom, filters.InquiryTo) &&
       dateInRange(r.EventDate, filters.EventFrom, filters.EventTo) &&
+      (!sfoOnly || r.UsingSFO === 'Yes') &&
       recordMatchesSearch(r, query)
     );
   }
@@ -1610,7 +1621,7 @@
     }
     input.id = 'tf-' + f.key;
     input.dataset.key = f.key;
-    if (record && record[f.key] !== undefined) input.value = cleanTextValue(record[f.key]);
+    if (record && record[f.key] !== undefined && record[f.key] !== '') input.value = cleanTextValue(record[f.key]);
     wrap.appendChild(label);
     wrap.appendChild(input);
     return wrap;
@@ -1743,6 +1754,7 @@
   // Fields with a real equivalent on the other side map straight across.
   // Title1 isn't listed here since both types use the exact same key —
   // it already carries over untouched with no mapping needed.
+  const SHARED_FIELD_KEYS = ['Title1', 'UsingSFO', 'ASCARName', 'ASCAREmail'];
   const FIELD_TRIP_OUTREACH_FIELD_MAP = {
     'FT_ContactName': 'OR_PrimaryContact',
     'FT_ContactEmail': 'OR_PrimaryEmail',
@@ -1769,7 +1781,7 @@
 
     sourceFields.forEach(f => {
       const key = f.key;
-      if (key === 'Title1') return; // shared field, carries over as-is
+      if (SHARED_FIELD_KEYS.indexOf(key) !== -1) return; // shared fields carry over as-is
       const value = record[key];
       const mappedKey = map[key];
       if (mappedKey) {
@@ -1937,6 +1949,11 @@
     }
     el('filter-inquiry-from').value = filters.InquiryFrom;
     el('filter-inquiry-to').value = filters.InquiryTo;
+    renderTable();
+  };
+  el('sfo-toggle-btn').onclick = () => {
+    sfoOnly = !sfoOnly;
+    el('sfo-toggle-btn').classList.toggle('active', sfoOnly);
     renderTable();
   };
   el('clear-event-btn').onclick = () => {

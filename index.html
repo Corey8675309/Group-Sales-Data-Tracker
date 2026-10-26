@@ -981,7 +981,10 @@
   const LS_URL_KEY = 'gst_script_url';
   const LS_REPS_KEY = 'gst_reps';
 
-  const DEFAULT_REPS = ['Corey', 'Deanna', 'Jeremy', 'Kay', 'April', 'Carole'];
+  const DEFAULT_REPS = ['Corey', 'Deanna', 'Kay', 'April', 'Carole'];
+  // People who've left. Removed from the new-entry dropdown on every browser, but their
+  // existing entries keep their name (search still finds them).
+  const FORMER_REPS = ['Jeremy'];
   const PROGRAM_TYPES = ['Field Trip', 'Birthday', 'Outreach'];
   const LOCATIONS = ['DPS', 'DPKH', 'DPKR', 'Outreach'];
 
@@ -1076,7 +1079,8 @@
   };
 
   let scriptUrl = localStorage.getItem(LS_URL_KEY) || '';
-  let repList = JSON.parse(localStorage.getItem(LS_REPS_KEY) || 'null') || DEFAULT_REPS.slice();
+  let repList = (JSON.parse(localStorage.getItem(LS_REPS_KEY) || 'null') || DEFAULT_REPS.slice())
+    .filter(name => FORMER_REPS.indexOf(name) === -1);
 
   let allRecords = [];
   let filters = {
@@ -1681,7 +1685,13 @@
     // filtered (if exactly one is) — otherwise it starts blank on purpose,
     // forcing an actual choice, rather than quietly defaulting to any one
     // specific person's name that's easy to forget to change.
-    el('f-rep').value = record ? (record.Rep || '') : (filters.Rep.size === 1 ? Array.from(filters.Rep)[0] : '');
+    const repSel = el('f-rep');
+    if (record && record.Rep && !Array.from(repSel.options).some(o => o.value === record.Rep)) {
+      const formerOpt = document.createElement('option');
+      formerOpt.value = record.Rep; formerOpt.textContent = record.Rep + ' (former)';
+      repSel.appendChild(formerOpt);
+    }
+    repSel.value = record ? (record.Rep || '') : (filters.Rep.size === 1 ? Array.from(filters.Rep)[0] : '');
     const defaultLocation = type === 'Outreach' ? 'Outreach' : 'DPS';
     el('f-location').value = record ? record.Location || defaultLocation : (filters.Location.size === 1 ? Array.from(filters.Location)[0] : defaultLocation);
     el('f-eventdate').value = record ? toDateInput(record.EventDate) : '';

@@ -486,6 +486,37 @@
   .cal-ev-time, .cal-ev-rep { font-size: 10.5px; color: var(--steel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-chip { font-family: var(--font-body); font-size: 11px; padding: 2px 6px; border-radius: 3px; cursor: pointer; border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 16%, var(--paper)); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-cancelled { opacity: 0.55; }
+  .cal-note.plain { color: var(--steel); }
+  .cal-dayhead[data-day] { cursor: pointer; }
+  .cal-dayhead[data-day]:hover .cal-daynum { background: color-mix(in srgb, var(--teal) 30%, transparent); }
+  .cal-dayhead.today[data-day]:hover .cal-daynum { background: var(--teal); }
+  .cal-group {
+    position: absolute; left: 2px; right: 2px; box-sizing: border-box; overflow: hidden; padding: 5px 8px; border-radius: 4px; cursor: pointer;
+    font-family: var(--font-body); font-size: 11px; line-height: 1.3; color: var(--ink);
+    border-left: 3px solid var(--teal); background: color-mix(in srgb, var(--teal) 14%, var(--paper));
+  }
+  .cal-group:hover { background: color-mix(in srgb, var(--teal) 26%, var(--paper)); }
+  .cal-group-count { font-weight: 700; }
+  .cal-group-when { font-size: 10.5px; color: var(--steel); }
+  .cal-group-more { margin-top: 2px; font-size: 10px; color: var(--teal); text-decoration: underline; }
+  .cal-day { padding: 8px 16px 16px; min-width: 520px; }
+  .cal-day-row { display: flex; align-items: stretch; border-bottom: 1px solid var(--line); cursor: pointer; }
+  .cal-day-row:hover { background: color-mix(in srgb, var(--evc) 8%, var(--paper)); }
+  .cal-day-axis { cursor: default; position: sticky; top: 0; z-index: 2; background: var(--paper); }
+  .cal-day-axis:hover { background: var(--paper); }
+  .cal-day-name { width: 230px; flex-shrink: 0; min-width: 0; padding: 8px 12px 8px 4px; }
+  .cal-day-name .cal-ev-name { white-space: normal; }
+  .cal-day-track { position: relative; flex: 1; min-height: 40px; background-image: linear-gradient(to right, var(--line) 1px, transparent 1px); }
+  .cal-day-axis .cal-day-track { min-height: 26px; background-image: none; }
+  .cal-day-tick { position: absolute; top: 6px; padding-left: 4px; font-family: var(--font-body); font-size: 10px; color: var(--steel-soft); white-space: nowrap; }
+  .cal-day-bar {
+    position: absolute; top: 8px; bottom: 8px; box-sizing: border-box; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    display: flex; align-items: center; padding: 0 8px; border-radius: 4px;
+    font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--ink);
+    border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 28%, var(--paper));
+  }
+  .cal-day-row.notime .cal-day-name { width: auto; }
+  .cal-day-section { font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); margin: 18px 0 4px; }
   .cal-cancelled .cal-ev-name, .cal-chip.cal-cancelled { text-decoration: line-through; }
   .cal-agenda { display: none; padding: 8px 12px 16px; }
   .cal-agenda-head { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); margin: 14px 0 6px; }
@@ -497,6 +528,10 @@
     .cal-grid { display: none; }
     .cal-agenda { display: block; }
     .cal-note { margin-left: 0; }
+    .cal-day { min-width: 0; }
+    .cal-day-row { flex-direction: column; }
+    .cal-day-name { width: auto; padding-bottom: 0; }
+    .cal-day-axis { display: none; }
   }
 
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
@@ -781,6 +816,7 @@
           <button class="btn-clear" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
           <button class="btn-clear" id="cal-today">Today</button>
           <button class="btn-clear" id="cal-next" aria-label="Next week">&rsaquo;</button>
+          <button class="btn-clear" id="cal-back" style="display:none;">Back to week</button>
         </div>
         <div class="cal-range" id="cal-range"></div>
         <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--steel-soft)"></i>Cancelled</div>
@@ -2228,8 +2264,9 @@
     return h * 60 + min;
   }
 
-  // Side-by-side placement for trips that overlap in time on the same day.
-  function layoutDayEvents(events) {
+  // Groups trips into clusters: trips whose time windows touch or chain together
+  // (A overlaps B, B overlaps C) land in the same cluster. Back-to-back is not overlap.
+  function clusterEvents(events) {
     events.sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
     const clusters = [];
     let cur = null;
@@ -2239,17 +2276,36 @@
       else { curEnd = Math.max(curEnd, ev.endMin); }
       cur.push(ev);
     });
-    clusters.forEach(cluster => {
-      const laneEnds = [];
-      cluster.forEach(ev => {
-        let lane = laneEnds.findIndex(end => end <= ev.startMin);
-        if (lane === -1) { lane = laneEnds.length; laneEnds.push(ev.endMin); }
-        else { laneEnds[lane] = ev.endMin; }
-        ev.lane = lane;
-      });
-      cluster.forEach(ev => { ev.lanes = laneEnds.length; });
+    return clusters;
+  }
+
+  // Side-by-side lanes for the trips inside one (small) cluster.
+  function assignLanes(cluster) {
+    const laneEnds = [];
+    cluster.forEach(ev => {
+      let lane = laneEnds.findIndex(end => end <= ev.startMin);
+      if (lane === -1) { lane = laneEnds.length; laneEnds.push(ev.endMin); }
+      else { laneEnds[lane] = ev.endMin; }
+      ev.lane = lane;
     });
+    cluster.forEach(ev => { ev.lanes = laneEnds.length; });
+  }
+
+  function layoutDayEvents(events) {
+    clusterEvents(events).forEach(assignLanes);
     return events;
+  }
+
+  function calFormatMinutes(min) {
+    const h24 = Math.floor(min / 60) % 24;
+    const m = min % 60;
+    const h = h24 % 12 === 0 ? 12 : h24 % 12;
+    return h + ':' + String(m).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM');
+  }
+
+  function parseCalKey(key) {
+    const p = key.split('-').map(Number);
+    return new Date(p[0], p[1] - 1, p[2]);
   }
 
   function startOfWeekMonday(d) {
@@ -2264,9 +2320,11 @@
 
   const CAL_STATUSES = ['Booked', 'Paid', 'Cancelled'];
   const CAL_PX_PER_HOUR = 44;
+  const CAL_COLLAPSE_AT = 3;
   const CAL_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const CAL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   let calWeekStart = startOfWeekMonday(new Date());
+  let calDayKey = null; // 'YYYY-MM-DD' while a single day is open, null for the week view
 
   function calRound(n) { return Math.round(n * 10) / 10; }
 
@@ -2290,6 +2348,40 @@
     return [r.GuestName, calTimeText(r), r.Status, r.Rep].filter(Boolean).join(' | ');
   }
 
+  // Booked / Paid / Cancelled Field Trips, sorted into days. Trips with no
+  // readable arrival or departure go in "allDay"; trips with no date are only counted.
+  function calCollect(keys) {
+    const trips = allRecords.filter(r => r.ProgramType === 'Field Trip' && CAL_STATUSES.indexOf(r.Status) !== -1);
+    const undated = trips.filter(r => r.Status !== 'Cancelled' && !toDateInput(r.EventDate)).length;
+    const byDay = {};
+    keys.forEach(k => { byDay[k] = { timed: [], allDay: [] }; });
+    trips.forEach(r => {
+      const k = toDateInput(r.EventDate);
+      if (!k || !byDay[k]) return;
+      const sRaw = parseTimeToMinutes(r.FT_ArrivalTime);
+      const eRaw = parseTimeToMinutes(r.FT_DepartureTime);
+      if (sRaw === null && eRaw === null) { byDay[k].allDay.push({ rec: r }); return; }
+      let s = sRaw;
+      let e = eRaw;
+      if (s === null) s = Math.max(0, e - 60);
+      if (e === null || e <= s) e = s + 60;
+      e = Math.min(e, 24 * 60);
+      byDay[k].timed.push({ rec: r, startMin: s, endMin: e, arrKnown: sRaw !== null });
+    });
+    return { byDay: byDay, undated: undated };
+  }
+
+  // Hours shown: 8 AM to 4 PM, stretched if any trip falls outside that.
+  function calAxisRange(eventLists) {
+    let minStart = 8 * 60;
+    let maxEnd = 16 * 60;
+    eventLists.forEach(list => list.forEach(ev => {
+      if (ev.startMin < minStart) minStart = ev.startMin;
+      if (ev.endMin > maxEnd) maxEnd = ev.endMin;
+    }));
+    return { startHour: Math.floor(minStart / 60), endHour: Math.min(24, Math.ceil(maxEnd / 60)) };
+  }
+
   function calEventBlock(ev, startHour, pxPerMin) {
     const r = ev.rec;
     const top = calRound((ev.startMin - startHour * 60) * pxPerMin);
@@ -2305,15 +2397,46 @@
       + '</div>';
   }
 
+  // One summary card standing in for a busy stretch of a day. Clicking it opens that day.
+  function calGroupCard(cluster, dayKey, startHour, pxPerMin) {
+    const start = Math.min.apply(null, cluster.map(e => e.startMin));
+    const end = Math.max.apply(null, cluster.map(e => e.endMin));
+    const cancelled = cluster.filter(e => e.rec.Status === 'Cancelled').length;
+    const active = cluster.length - cancelled;
+    const arrivals = cluster.filter(e => e.arrKnown).map(e => e.startMin);
+    let when;
+    if (arrivals.length) {
+      const a = Math.min.apply(null, arrivals);
+      const b = Math.max.apply(null, arrivals);
+      when = 'arriving ' + (a === b ? 'at ' + calFormatMinutes(a) : 'between ' + calFormatMinutes(a) + ' and ' + calFormatMinutes(b));
+    } else {
+      when = 'around ' + calFormatMinutes(start) + ' to ' + calFormatMinutes(end);
+    }
+    const count = active > 0
+      ? active + ' group' + (active === 1 ? '' : 's') + (cancelled ? ' (+' + cancelled + ' cancelled)' : '')
+      : cancelled + ' cancelled';
+    const tip = cluster.map(ev => (ev.rec.GuestName || 'Untitled') + (calTimeText(ev.rec) ? ' (' + calTimeText(ev.rec) + ')' : '')).join('\n');
+    const top = calRound((start - startHour * 60) * pxPerMin);
+    const height = calRound(Math.max((end - start) * pxPerMin - 2, 64));
+    return '<div class="cal-group' + (active === 0 ? ' cal-cancelled' : '') + '" data-day="' + dayKey + '"'
+      + ' title="' + escapeHtml(tip) + '" style="top:' + top + 'px;height:' + height + 'px">'
+      + '<div class="cal-group-count">' + escapeHtml(count) + '</div>'
+      + '<div class="cal-group-when">' + escapeHtml(when) + '</div>'
+      + '<div class="cal-group-more">Click to see more</div>'
+      + '</div>';
+  }
+
   function calChip(r) {
     return '<div class="cal-chip' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
       + ' data-id="' + escapeHtml(String(r.ID)) + '" title="' + escapeHtml(calTitle(r)) + '"'
       + ' style="--evc:' + calEventColor(r.Status) + '">' + escapeHtml(r.GuestName || 'Untitled') + '</div>';
   }
 
-  // Week view of Field Trips that are Booked, Paid, or Cancelled. Deliberately
-  // ignores the sidebar filters so it always shows every trip.
   function renderCalendar() {
+    el('cal-back').style.display = calDayKey ? '' : 'none';
+    if (calDayKey) { renderCalendarDay(); return; }
+    el('cal-note').classList.remove('plain');
+
     const days = [];
     for (let i = 0; i < 7; i++) {
       const d = new Date(calWeekStart);
@@ -2322,32 +2445,12 @@
     }
     const keys = days.map(dateKey);
     const todayKey = dateKey(new Date());
+    const data = calCollect(keys);
+    const byDay = data.byDay;
 
-    const trips = allRecords.filter(r => r.ProgramType === 'Field Trip' && CAL_STATUSES.indexOf(r.Status) !== -1);
-    const undated = trips.filter(r => r.Status !== 'Cancelled' && !toDateInput(r.EventDate)).length;
-
-    const byDay = {};
-    keys.forEach(k => { byDay[k] = { timed: [], allDay: [] }; });
-    trips.forEach(r => {
-      const k = toDateInput(r.EventDate);
-      if (!k || !byDay[k]) return;
-      let s = parseTimeToMinutes(r.FT_ArrivalTime);
-      let e = parseTimeToMinutes(r.FT_DepartureTime);
-      if (s === null && e === null) { byDay[k].allDay.push({ rec: r }); return; }
-      if (s === null) s = Math.max(0, e - 60);
-      if (e === null || e <= s) e = s + 60;
-      e = Math.min(e, 24 * 60);
-      byDay[k].timed.push({ rec: r, startMin: s, endMin: e });
-    });
-
-    let minStart = 8 * 60;
-    let maxEnd = 16 * 60;
-    keys.forEach(k => byDay[k].timed.forEach(ev => {
-      if (ev.startMin < minStart) minStart = ev.startMin;
-      if (ev.endMin > maxEnd) maxEnd = ev.endMin;
-    }));
-    const startHour = Math.floor(minStart / 60);
-    const endHour = Math.min(24, Math.ceil(maxEnd / 60));
+    const range = calAxisRange(keys.map(k => byDay[k].timed));
+    const startHour = range.startHour;
+    const endHour = range.endHour;
     const pxPerMin = CAL_PX_PER_HOUR / 60;
     const gridH = (endHour - startHour) * CAL_PX_PER_HOUR;
 
@@ -2356,14 +2459,14 @@
     el('cal-range').textContent = CAL_MONTHS[first.getMonth()] + ' ' + first.getDate() + ' - '
       + (first.getMonth() === last.getMonth() ? '' : CAL_MONTHS[last.getMonth()] + ' ')
       + last.getDate() + ', ' + last.getFullYear();
-    el('cal-note').textContent = undated
-      ? undated + ' booked or paid trip' + (undated === 1 ? ' has no event date and is' : 's have no event date and are') + ' not shown'
+    el('cal-note').textContent = data.undated
+      ? data.undated + ' booked or paid trip' + (data.undated === 1 ? ' has no event date and is' : 's have no event date and are') + ' not shown'
       : '';
 
     let html = '<div class="cal-grid"><div class="cal-corner"></div>';
     days.forEach((d, i) => {
-      html += '<div class="cal-dayhead' + (keys[i] === todayKey ? ' today' : '') + '">' + CAL_DAY_NAMES[i]
-        + ' <span class="cal-daynum">' + d.getDate() + '</span></div>';
+      html += '<div class="cal-dayhead' + (keys[i] === todayKey ? ' today' : '') + '" data-day="' + keys[i] + '" title="Open this day">'
+        + CAL_DAY_NAMES[i] + ' <span class="cal-daynum">' + d.getDate() + '</span></div>';
     });
     html += '<div class="cal-allday-label">No time</div>';
     keys.forEach(k => {
@@ -2375,9 +2478,15 @@
     }
     html += '</div>';
     keys.forEach(k => {
-      const evs = layoutDayEvents(byDay[k].timed);
       html += '<div class="cal-daycol' + (k === todayKey ? ' today' : '') + '" style="height:' + gridH + 'px;background-size:100% ' + CAL_PX_PER_HOUR + 'px">';
-      evs.forEach(ev => { html += calEventBlock(ev, startHour, pxPerMin); });
+      clusterEvents(byDay[k].timed).forEach(cluster => {
+        if (cluster.length >= CAL_COLLAPSE_AT) {
+          html += calGroupCard(cluster, k, startHour, pxPerMin);
+        } else {
+          assignLanes(cluster);
+          cluster.forEach(ev => { html += calEventBlock(ev, startHour, pxPerMin); });
+        }
+      });
       html += '</div>';
     });
     html += '</div>';
@@ -2405,6 +2514,76 @@
     el('cal-body').innerHTML = html;
   }
 
+  // One day on its own: a row per trip on a shared time axis, with the full school name.
+  function renderCalendarDay() {
+    const d = parseCalKey(calDayKey);
+    const data = calCollect([calDayKey]);
+    const day = data.byDay[calDayKey];
+    const evs = day.timed.slice().sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+    const range = calAxisRange([evs]);
+    const startHour = range.startHour;
+    const endHour = range.endHour;
+    const hours = endHour - startHour;
+    const totalMin = hours * 60;
+    const total = evs.length + day.allDay.length;
+
+    el('cal-range').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+    el('cal-note').textContent = total + ' trip' + (total === 1 ? '' : 's');
+    el('cal-note').classList.add('plain');
+
+    if (!total) {
+      el('cal-body').innerHTML = '<div class="cal-day"><div class="cal-agenda-empty">No trips on this day</div></div>';
+      return;
+    }
+
+    const rowName = r => '<div class="cal-day-name"><div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
+      + '<div class="cal-ev-time">' + escapeHtml([r.Rep, r.Status].filter(Boolean).join(' | ')) + '</div></div>';
+
+    let html = '<div class="cal-day">';
+    if (evs.length) {
+      html += '<div class="cal-day-row cal-day-axis"><div class="cal-day-name"></div><div class="cal-day-track">';
+      for (let h = startHour; h < endHour; h++) {
+        html += '<div class="cal-day-tick" style="left:' + calRound((h - startHour) / hours * 100) + '%">' + calHourLabel(h) + '</div>';
+      }
+      html += '</div></div>';
+      evs.forEach(ev => {
+        const r = ev.rec;
+        const left = calRound((ev.startMin - startHour * 60) / totalMin * 100);
+        const width = calRound(Math.max((ev.endMin - ev.startMin) / totalMin * 100, 3));
+        html += '<div class="cal-day-row' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '" data-id="' + escapeHtml(String(r.ID)) + '"'
+          + ' style="--evc:' + calEventColor(r.Status) + '" title="' + escapeHtml(calTitle(r)) + '">'
+          + rowName(r)
+          + '<div class="cal-day-track" style="background-size:' + calRound(100 / hours) + '% 100%">'
+          + '<div class="cal-day-bar" style="left:' + left + '%;width:' + width + '%">' + escapeHtml(calTimeText(r)) + '</div>'
+          + '</div></div>';
+      });
+    }
+    if (day.allDay.length) {
+      html += '<div class="cal-day-section">No time set</div>';
+      day.allDay.forEach(ev => {
+        const r = ev.rec;
+        html += '<div class="cal-day-row notime' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '" data-id="' + escapeHtml(String(r.ID)) + '"'
+          + ' style="--evc:' + calEventColor(r.Status) + '">' + rowName(r) + '</div>';
+      });
+    }
+    html += '</div>';
+    el('cal-body').innerHTML = html;
+    el('cal-body').scrollTop = 0;
+  }
+
+  // Previous / next: a week at a time in the week view, a day at a time in the day view.
+  function calStep(dir) {
+    if (calDayKey) {
+      const d = parseCalKey(calDayKey);
+      d.setDate(d.getDate() + dir);
+      calDayKey = dateKey(d);
+      calWeekStart = startOfWeekMonday(d);
+    } else {
+      calWeekStart.setDate(calWeekStart.getDate() + dir * 7);
+    }
+    renderCalendar();
+  }
+
   function setViewMode(mode) {
     viewMode = mode;
     el('main-panel').classList.toggle('mode-calendar', mode === 'calendar');
@@ -2417,10 +2596,21 @@
   }
   el('view-table-btn').onclick = () => setViewMode('table');
   el('view-calendar-btn').onclick = () => setViewMode('calendar');
-  el('cal-prev').onclick = () => { calWeekStart.setDate(calWeekStart.getDate() - 7); renderCalendar(); };
-  el('cal-next').onclick = () => { calWeekStart.setDate(calWeekStart.getDate() + 7); renderCalendar(); };
-  el('cal-today').onclick = () => { calWeekStart = startOfWeekMonday(new Date()); renderCalendar(); };
+  el('cal-prev').onclick = () => calStep(-1);
+  el('cal-next').onclick = () => calStep(1);
+  el('cal-today').onclick = () => {
+    calWeekStart = startOfWeekMonday(new Date());
+    if (calDayKey) calDayKey = dateKey(new Date());
+    renderCalendar();
+  };
+  el('cal-back').onclick = () => { calDayKey = null; renderCalendar(); };
   el('cal-body').addEventListener('click', e => {
+    const dayEl = e.target.closest('[data-day]');
+    if (dayEl) {
+      calDayKey = dayEl.dataset.day;
+      renderCalendar();
+      return;
+    }
     const target = e.target.closest('[data-id]');
     if (!target) return;
     const rec = allRecords.find(r => String(r.ID) === target.dataset.id);

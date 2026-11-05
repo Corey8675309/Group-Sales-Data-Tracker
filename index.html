@@ -442,9 +442,10 @@
   #sfo-toggle-btn.active:hover { color: #fff; }
 
   /* ---------- Calendar view ---------- */
-  .view-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
-  .view-toggle button { all: unset; cursor: pointer; font-family: var(--font-body); font-size: 11.5px; padding: 6px 14px; color: var(--steel); }
-  .view-toggle button.active { background: var(--teal); color: #fff; font-weight: 600; }
+  .view-toggle { display: flex; gap: 10px; align-items: center; }
+  /* Outlined buttons have a 1px border; give the filled one a matching border so both are the same size */
+  .view-toggle .btn-primary { border: 1px solid var(--teal); }
+  .view-toggle .btn-primary:hover { border-color: var(--teal-deep); }
   .calendar-wrap { display: none; flex: 1; min-height: 0; margin: 16px 28px 28px; flex-direction: column; border: 1px solid var(--line); background: var(--paper); overflow: hidden; }
   .main.mode-calendar .calendar-wrap { display: flex; }
   .main.mode-calendar .search-row,
@@ -710,13 +711,12 @@
     </div>
     <div class="topbar">
       <div>
-        <h2 id="view-title">Entries</h2>
+        <div class="view-toggle">
+          <button class="btn btn-primary" id="view-table-btn">Table</button>
+          <button class="btn btn-ghost" id="view-calendar-btn">Calendar</button>
+        </div>
       </div>
       <div class="topbar-actions">
-        <div class="view-toggle">
-          <button id="view-table-btn" class="active">Table</button>
-          <button id="view-calendar-btn">Calendar</button>
-        </div>
         <button class="btn btn-ghost" id="export-btn">Export</button>
         <button class="btn btn-primary" id="new-record-btn">+ New entry</button>
       </div>
@@ -2408,9 +2408,11 @@
   function setViewMode(mode) {
     viewMode = mode;
     el('main-panel').classList.toggle('mode-calendar', mode === 'calendar');
-    el('view-table-btn').classList.toggle('active', mode === 'table');
-    el('view-calendar-btn').classList.toggle('active', mode === 'calendar');
-    el('view-title').textContent = mode === 'calendar' ? 'Calendar' : 'Entries';
+    [['view-table-btn', 'table'], ['view-calendar-btn', 'calendar']].forEach(([id, m]) => {
+      const on = mode === m;
+      el(id).classList.toggle('btn-primary', on);
+      el(id).classList.toggle('btn-ghost', !on);
+    });
     if (mode === 'calendar') renderCalendar();
   }
   el('view-table-btn').onclick = () => setViewMode('table');

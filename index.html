@@ -477,7 +477,7 @@
   .cal-daycol { position: relative; border-left: 1px solid var(--line); background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px); }
   .cal-daycol.today { background-color: color-mix(in srgb, var(--teal) 6%, transparent); }
   .cal-event {
-    position: absolute; box-sizing: border-box; overflow: hidden; padding: 3px 6px; border-radius: 4px; cursor: pointer;
+    position: absolute; box-sizing: border-box; overflow: hidden; padding: 2px 6px; border-radius: 4px; cursor: pointer;
     font-family: var(--font-body); font-size: 11px; line-height: 1.25; color: var(--ink);
     border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 16%, var(--paper));
   }
@@ -487,6 +487,14 @@
   .cal-chip { font-family: var(--font-body); font-size: 11px; padding: 2px 6px; border-radius: 3px; cursor: pointer; border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 16%, var(--paper)); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cal-cancelled { opacity: 0.55; }
   .cal-note.plain { color: var(--steel); }
+  .cal-filter-note { font-family: var(--font-body); font-size: 11px; font-weight: 600; color: var(--teal); }
+  .cal-jump { font-family: var(--font-body); font-size: 12px; padding: 4px 10px; border: 1px solid var(--line); border-radius: 999px; background: var(--paper); color: var(--ink); }
+  .cal-jump:focus { outline: none; border-color: var(--teal); }
+  :root[data-theme="dark"] .cal-jump,
+  :root[data-theme="fall-dark"] .cal-jump,
+  :root[data-theme="christmas-dark"] .cal-jump { color-scheme: dark; }
+  .cal-ev-loc { font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-chip-loc { font-size: 9.5px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
   .cal-dayhead[data-day] { cursor: pointer; }
   .cal-dayhead[data-day]:hover .cal-daynum { background: color-mix(in srgb, var(--teal) 30%, transparent); }
   .cal-dayhead.today[data-day]:hover .cal-daynum { background: var(--teal); }
@@ -819,7 +827,9 @@
           <button class="btn-clear" id="cal-back" style="display:none;">Back to week</button>
         </div>
         <div class="cal-range" id="cal-range"></div>
+        <input type="date" class="cal-jump" id="cal-jump" title="Jump to a date">
         <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--steel-soft)"></i>Cancelled</div>
+        <div class="cal-filter-note" id="cal-filter-note"></div>
         <div class="cal-note" id="cal-note"></div>
       </div>
       <div class="cal-body" id="cal-body"></div>
@@ -2319,8 +2329,8 @@
   }
 
   const CAL_STATUSES = ['Booked', 'Paid', 'Cancelled'];
-  const CAL_PX_PER_HOUR = 44;
-  const CAL_COLLAPSE_AT = 3;
+  const CAL_PX_PER_HOUR = 48;
+  const CAL_MAX_SIDE_BY_SIDE = 3; // more trips than this happening at once collapse into one card
   const CAL_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
   const CAL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   let calWeekStart = startOfWeekMonday(new Date());
@@ -2345,13 +2355,33 @@
   }
 
   function calTitle(r) {
-    return [r.GuestName, calTimeText(r), r.Status, r.Rep].filter(Boolean).join(' | ');
+    return [r.GuestName, r.Location, calTimeText(r), r.Status].filter(Boolean).join(' | ');
+  }
+
+  function calLocColor(r) {
+    return LOCATION_COLORS[r.Location] || 'var(--steel)';
+  }
+
+  function calLocationLine(r) {
+    return r.Location
+      ? '<div class="cal-ev-loc" style="color:' + calLocColor(r) + '">' + escapeHtml(r.Location) + '</div>'
+      : '';
+  }
+
+  // Keeps the header in step with the current view: the date picker, the Back button,
+  // and a reminder when the sidebar's Location chips are narrowing the calendar.
+  function calSyncHeader() {
+    el('cal-back').style.display = calDayKey ? '' : 'none';
+    el('cal-jump').value = calDayKey || dateKey(calWeekStart);
+    const locs = Array.from(filters.Location);
+    el('cal-filter-note').textContent = locs.length ? 'Location: ' + locs.join(', ') : '';
   }
 
   // Booked / Paid / Cancelled Field Trips, sorted into days. Trips with no
   // readable arrival or departure go in "allDay"; trips with no date are only counted.
   function calCollect(keys) {
-    const trips = allRecords.filter(r => r.ProgramType === 'Field Trip' && CAL_STATUSES.indexOf(r.Status) !== -1);
+    const trips = allRecords.filter(r => r.ProgramType === 'Field Trip' && CAL_STATUSES.indexOf(r.Status) !== -1
+      && (filters.Location.size === 0 || filters.Location.has(r.Location)));
     const undated = trips.filter(r => r.Status !== 'Cancelled' && !toDateInput(r.EventDate)).length;
     const byDay = {};
     keys.forEach(k => { byDay[k] = { timed: [], allDay: [] }; });
@@ -2391,9 +2421,9 @@
     return '<div class="cal-event' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
       + ' data-id="' + escapeHtml(String(r.ID)) + '" title="' + escapeHtml(calTitle(r)) + '"'
       + ' style="--evc:' + calEventColor(r.Status) + ';top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
+      + calLocationLine(r)
       + '<div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
       + '<div class="cal-ev-time">' + escapeHtml(calTimeText(r)) + '</div>'
-      + '<div class="cal-ev-rep">' + escapeHtml(r.Rep || '') + '</div>'
       + '</div>';
   }
 
@@ -2415,7 +2445,7 @@
     const count = active > 0
       ? active + ' group' + (active === 1 ? '' : 's') + (cancelled ? ' (+' + cancelled + ' cancelled)' : '')
       : cancelled + ' cancelled';
-    const tip = cluster.map(ev => (ev.rec.GuestName || 'Untitled') + (calTimeText(ev.rec) ? ' (' + calTimeText(ev.rec) + ')' : '')).join('\n');
+    const tip = cluster.map(ev => (ev.rec.GuestName || 'Untitled') + (ev.rec.Location ? ' [' + ev.rec.Location + ']' : '') + (calTimeText(ev.rec) ? ' (' + calTimeText(ev.rec) + ')' : '')).join('\n');
     const top = calRound((start - startHour * 60) * pxPerMin);
     const height = calRound(Math.max((end - start) * pxPerMin - 2, 64));
     return '<div class="cal-group' + (active === 0 ? ' cal-cancelled' : '') + '" data-day="' + dayKey + '"'
@@ -2429,11 +2459,13 @@
   function calChip(r) {
     return '<div class="cal-chip' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
       + ' data-id="' + escapeHtml(String(r.ID)) + '" title="' + escapeHtml(calTitle(r)) + '"'
-      + ' style="--evc:' + calEventColor(r.Status) + '">' + escapeHtml(r.GuestName || 'Untitled') + '</div>';
+      + ' style="--evc:' + calEventColor(r.Status) + '">'
+      + (r.Location ? '<span class="cal-chip-loc" style="color:' + calLocColor(r) + '">' + escapeHtml(r.Location) + '</span> ' : '')
+      + escapeHtml(r.GuestName || 'Untitled') + '</div>';
   }
 
   function renderCalendar() {
-    el('cal-back').style.display = calDayKey ? '' : 'none';
+    calSyncHeader();
     if (calDayKey) { renderCalendarDay(); return; }
     el('cal-note').classList.remove('plain');
 
@@ -2480,10 +2512,10 @@
     keys.forEach(k => {
       html += '<div class="cal-daycol' + (k === todayKey ? ' today' : '') + '" style="height:' + gridH + 'px;background-size:100% ' + CAL_PX_PER_HOUR + 'px">';
       clusterEvents(byDay[k].timed).forEach(cluster => {
-        if (cluster.length >= CAL_COLLAPSE_AT) {
+        assignLanes(cluster);
+        if (cluster[0].lanes > CAL_MAX_SIDE_BY_SIDE) {
           html += calGroupCard(cluster, k, startHour, pxPerMin);
         } else {
-          assignLanes(cluster);
           cluster.forEach(ev => { html += calEventBlock(ev, startHour, pxPerMin); });
         }
       });
@@ -2503,8 +2535,9 @@
       items.forEach(r => {
         html += '<div class="cal-agenda-item' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
           + ' data-id="' + escapeHtml(String(r.ID)) + '" style="--evc:' + calEventColor(r.Status) + '">'
+          + calLocationLine(r)
           + '<div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
-          + '<div class="cal-ev-time">' + escapeHtml(calTimeText(r) || 'Time not set') + (r.Rep ? ' | ' + escapeHtml(r.Rep) : '') + '</div>'
+          + '<div class="cal-ev-time">' + escapeHtml(calTimeText(r) || 'Time not set') + '</div>'
           + '</div>';
       });
       html += '</div>';
@@ -2536,8 +2569,8 @@
       return;
     }
 
-    const rowName = r => '<div class="cal-day-name"><div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
-      + '<div class="cal-ev-time">' + escapeHtml([r.Rep, r.Status].filter(Boolean).join(' | ')) + '</div></div>';
+    const rowName = r => '<div class="cal-day-name">' + calLocationLine(r) + '<div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
+      + '<div class="cal-ev-time">' + escapeHtml(r.Status || '') + '</div></div>';
 
     let html = '<div class="cal-day">';
     if (evs.length) {
@@ -2604,6 +2637,15 @@
     renderCalendar();
   };
   el('cal-back').onclick = () => { calDayKey = null; renderCalendar(); };
+  el('cal-jump').onchange = () => {
+    const v = el('cal-jump').value;
+    if (!v) return;
+    const d = parseCalKey(v);
+    if (isNaN(d)) return;
+    calWeekStart = startOfWeekMonday(d);
+    if (calDayKey) calDayKey = v;
+    renderCalendar();
+  };
   el('cal-body').addEventListener('click', e => {
     const dayEl = e.target.closest('[data-day]');
     if (dayEl) {

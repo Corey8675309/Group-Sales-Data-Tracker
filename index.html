@@ -441,6 +441,63 @@
   #today-inquiry-btn.active:hover,
   #sfo-toggle-btn.active:hover { color: #fff; }
 
+  /* ---------- Calendar view ---------- */
+  .view-toggle { display: flex; border: 1px solid var(--line); border-radius: 999px; overflow: hidden; }
+  .view-toggle button { all: unset; cursor: pointer; font-family: var(--font-body); font-size: 11.5px; padding: 6px 14px; color: var(--steel); }
+  .view-toggle button.active { background: var(--teal); color: #fff; font-weight: 600; }
+  .calendar-wrap { display: none; flex: 1; min-height: 0; margin: 16px 28px 28px; flex-direction: column; border: 1px solid var(--line); background: var(--paper); overflow: hidden; }
+  .main.mode-calendar .calendar-wrap { display: flex; }
+  .main.mode-calendar .search-row,
+  .main.mode-calendar .date-filters,
+  .main.mode-calendar .summary-line,
+  .main.mode-calendar .table-wrap,
+  .main.mode-calendar #export-btn { display: none; }
+  .cal-header { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  .cal-nav { display: flex; gap: 6px; }
+  .cal-range { font-family: var(--font-body); font-size: 13px; font-weight: 700; color: var(--ink); }
+  .cal-legend { display: flex; align-items: center; gap: 6px; font-family: var(--font-body); font-size: 11px; color: var(--steel); }
+  .cal-legend i { width: 9px; height: 9px; border-radius: 50%; display: inline-block; margin-left: 8px; }
+  .cal-legend i:first-child { margin-left: 0; }
+  .cal-note { font-family: var(--font-body); font-size: 11px; color: var(--clr-orange); margin-left: auto; }
+  .cal-body { flex: 1; overflow: auto; }
+  .cal-grid { display: grid; grid-template-columns: 52px repeat(7, minmax(0, 1fr)); min-width: 720px; }
+  .cal-corner { position: sticky; top: 0; z-index: 3; background: color-mix(in srgb, var(--teal) 45%, var(--paper)); border-bottom: 1px solid var(--line); }
+  .cal-dayhead {
+    position: sticky; top: 0; z-index: 3; padding: 8px 6px; text-align: center;
+    background: color-mix(in srgb, var(--teal) 45%, var(--paper)); border-bottom: 1px solid var(--line); border-left: 1px solid var(--line);
+    font-family: var(--font-body); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel);
+  }
+  .cal-daynum { font-size: 12px; font-weight: 700; color: var(--ink); padding: 1px 6px; border-radius: 999px; }
+  .cal-dayhead.today .cal-daynum { background: var(--teal); color: #fff; }
+  .cal-allday-label { background: var(--paper-2); border-bottom: 1px solid var(--line); padding: 8px 4px; text-align: right; font-family: var(--font-body); font-size: 9.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel-soft); }
+  .cal-allday-cell { border-left: 1px solid var(--line); border-bottom: 1px solid var(--line); background: var(--paper-2); padding: 4px; min-height: 30px; display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+  .cal-gutter { position: relative; }
+  .cal-hour-label { position: absolute; left: 0; width: 100%; box-sizing: border-box; padding: 2px 6px 0 0; text-align: right; font-family: var(--font-body); font-size: 10px; color: var(--steel-soft); }
+  .cal-daycol { position: relative; border-left: 1px solid var(--line); background-image: linear-gradient(to bottom, var(--line) 1px, transparent 1px); }
+  .cal-daycol.today { background-color: color-mix(in srgb, var(--teal) 6%, transparent); }
+  .cal-event {
+    position: absolute; box-sizing: border-box; overflow: hidden; padding: 3px 6px; border-radius: 4px; cursor: pointer;
+    font-family: var(--font-body); font-size: 11px; line-height: 1.25; color: var(--ink);
+    border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 16%, var(--paper));
+  }
+  .cal-event:hover, .cal-chip:hover, .cal-agenda-item:hover { background: color-mix(in srgb, var(--evc) 28%, var(--paper)); }
+  .cal-ev-name { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-ev-time, .cal-ev-rep { font-size: 10.5px; color: var(--steel); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-chip { font-family: var(--font-body); font-size: 11px; padding: 2px 6px; border-radius: 3px; cursor: pointer; border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 16%, var(--paper)); color: var(--ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cal-cancelled { opacity: 0.55; }
+  .cal-cancelled .cal-ev-name, .cal-chip.cal-cancelled { text-decoration: line-through; }
+  .cal-agenda { display: none; padding: 8px 12px 16px; }
+  .cal-agenda-head { font-family: var(--font-body); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--steel); margin: 14px 0 6px; }
+  .cal-agenda-head.today { color: var(--teal); font-weight: 700; }
+  .cal-agenda-empty { font-size: 12px; color: var(--steel-soft); padding: 2px 0; }
+  .cal-agenda-item { border-left: 3px solid var(--evc); background: color-mix(in srgb, var(--evc) 14%, var(--paper)); padding: 6px 10px; margin: 4px 0; border-radius: 4px; cursor: pointer; color: var(--ink); }
+  @media (max-width: 780px) {
+    .calendar-wrap { margin: 12px; }
+    .cal-grid { display: none; }
+    .cal-agenda { display: block; }
+    .cal-note { margin-left: 0; }
+  }
+
   .table-wrap { flex: 1; margin: 16px 28px 28px; overflow: auto; border: 1px solid var(--line); background: var(--paper); }
   table { width: 100%; border-collapse: collapse; font-size: 13px; }
   thead th {
@@ -621,7 +678,7 @@
     </div>
   </div>
 
-  <div class="main">
+  <div class="main" id="main-panel">
     <div class="christmas-lights" aria-hidden="true">
       <svg viewBox="0 0 2400 40" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M0,6 Q100,26 200,6 T400,6 T600,6 T800,6 T1000,6 T1200,6 T1400,6 T1600,6 T1800,6 T2000,6 T2200,6 T2400,6" stroke="#3A4A3E" stroke-width="2" fill="none"/>
@@ -656,6 +713,10 @@
         <h2 id="view-title">Entries</h2>
       </div>
       <div class="topbar-actions">
+        <div class="view-toggle">
+          <button id="view-table-btn" class="active">Table</button>
+          <button id="view-calendar-btn">Calendar</button>
+        </div>
         <button class="btn btn-ghost" id="export-btn">Export</button>
         <button class="btn btn-primary" id="new-record-btn">+ New entry</button>
       </div>
@@ -712,6 +773,20 @@
         <div class="tag">No entries match</div>
         <div>Try widening the filters on the left, or add a new record.</div>
       </div>
+    </div>
+
+    <div class="calendar-wrap" id="calendar-wrap">
+      <div class="cal-header">
+        <div class="cal-nav">
+          <button class="btn-clear" id="cal-prev" aria-label="Previous week">&lsaquo;</button>
+          <button class="btn-clear" id="cal-today">Today</button>
+          <button class="btn-clear" id="cal-next" aria-label="Next week">&rsaquo;</button>
+        </div>
+        <div class="cal-range" id="cal-range"></div>
+        <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--steel-soft)"></i>Cancelled</div>
+        <div class="cal-note" id="cal-note"></div>
+      </div>
+      <div class="cal-body" id="cal-body"></div>
     </div>
 
     <div class="fall-scenery" aria-hidden="true">
@@ -1004,6 +1079,18 @@
     'Outreach': 'Off-site / community programs.'
   };
 
+  // 15-minute steps from 8:00 AM to 4:00 PM, saved as text like "10:30 AM".
+  const TIME_OPTIONS = (() => {
+    const out = [''];
+    for (let m = 8 * 60; m <= 16 * 60; m += 15) {
+      const h24 = Math.floor(m / 60);
+      const min = m % 60;
+      const h = h24 % 12 === 0 ? 12 : h24 % 12;
+      out.push(h + ':' + String(min).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM'));
+    }
+    return out;
+  })();
+
   const TYPE_FIELDS = {
     'Field Trip': [
       { key: 'FT_ContactName', label: 'Primary contact name' },
@@ -1018,8 +1105,8 @@
       { key: 'FT_NumStudents', label: 'Number of students/children', type: 'number' },
       { key: 'FT_NumChaperones', label: 'Number of chaperones/adults', type: 'number' },
       { key: 'FT_GradeLevel', label: 'Grade level' },
-      { key: 'FT_ArrivalTime', label: 'Arrival time' },
-      { key: 'FT_DepartureTime', label: 'Departure time' },
+      { key: 'FT_ArrivalTime', label: 'Arrival time', type: 'select', options: TIME_OPTIONS },
+      { key: 'FT_DepartureTime', label: 'Departure time', type: 'select', options: TIME_OPTIONS },
       { key: 'FT_Transportation', label: 'Transportation method' },
       { key: 'FT_TransportationNumber', label: 'Transportation number' },
       { key: 'FT_Lunch', label: 'Lunch' },
@@ -1089,6 +1176,7 @@
   };
   let searchQuery = '';
   let sfoOnly = false;
+  let viewMode = 'table';
   let sortKey = 'EventDate';
   let sortDir = 'asc';
   let pendingType = null; // set when creating a new record, after type picker
@@ -1447,7 +1535,7 @@
     el('summary-line').innerHTML = `<strong>${rows.length}</strong> entr${rows.length === 1 ? 'y' : 'ies'} shown`;
   }
 
-  function renderAll() { updateAccentColor(); renderFilterChips(); renderTable(); }
+  function renderAll() { updateAccentColor(); renderFilterChips(); renderTable(); if (viewMode === 'calendar') renderCalendar(); }
 
   document.querySelectorAll('th[data-sort]').forEach(th => {
     th.onclick = () => {
@@ -1616,7 +1704,7 @@
       input = document.createElement('select');
       (f.options || []).forEach(opt => {
         const o = document.createElement('option');
-        o.value = opt; o.textContent = opt;
+        o.value = opt; o.textContent = opt === '' ? 'Select...' : opt;
         input.appendChild(o);
       });
     } else {
@@ -1625,7 +1713,17 @@
     }
     input.id = 'tf-' + f.key;
     input.dataset.key = f.key;
-    if (record && record[f.key] !== undefined && record[f.key] !== '') input.value = cleanTextValue(record[f.key]);
+    const savedVal = (record && record[f.key] !== undefined && record[f.key] !== '') ? String(cleanTextValue(record[f.key])) : '';
+    if (savedVal) {
+      // An older entry's value (e.g. a free-typed "1:00") may not be one of the options. Keep it
+      // as the current choice so opening and saving an entry never wipes it.
+      if (f.type === 'select' && (f.options || []).indexOf(savedVal) === -1) {
+        const keep = document.createElement('option');
+        keep.value = savedVal; keep.textContent = savedVal;
+        input.appendChild(keep);
+      }
+      input.value = savedVal;
+    }
     wrap.appendChild(label);
     wrap.appendChild(input);
     return wrap;
@@ -2104,6 +2202,228 @@
   });
 
   applyTheme(themeFamily, themeMode);
+
+  // ---------- Calendar helpers ----------
+  // Turns whatever is saved in an Arrival/Departure field into minutes after
+  // midnight, or null if it can't be read. Newer entries are saved like
+  // "10:30 AM". Older free-typed ones ("10:30", "1:00", "1pm") are read with a
+  // school-hours rule: with no am/pm, 7-11 means morning and 1-6 means afternoon.
+  function parseTimeToMinutes(raw) {
+    if (raw === null || raw === undefined) return null;
+    const s = String(cleanTextValue(raw)).trim().toLowerCase().replace(/\./g, '');
+    if (!s) return null;
+    const m = s.match(/^(\d{1,2})(?::(\d{2}))?\s*(am|pm|a|p)?\b/);
+    if (!m) return null;
+    let h = parseInt(m[1], 10);
+    const min = m[2] ? parseInt(m[2], 10) : 0;
+    if (h > 24 || min > 59) return null;
+    const mer = m[3];
+    if (mer) {
+      if (mer[0] === 'p' && h < 12) h += 12;
+      if (mer[0] === 'a' && h === 12) h = 0;
+    } else if (h >= 1 && h <= 6) {
+      h += 12;
+    }
+    if (h === 24) h = 0;
+    return h * 60 + min;
+  }
+
+  // Side-by-side placement for trips that overlap in time on the same day.
+  function layoutDayEvents(events) {
+    events.sort((a, b) => a.startMin - b.startMin || a.endMin - b.endMin);
+    const clusters = [];
+    let cur = null;
+    let curEnd = -1;
+    events.forEach(ev => {
+      if (!cur || ev.startMin >= curEnd) { cur = []; clusters.push(cur); curEnd = ev.endMin; }
+      else { curEnd = Math.max(curEnd, ev.endMin); }
+      cur.push(ev);
+    });
+    clusters.forEach(cluster => {
+      const laneEnds = [];
+      cluster.forEach(ev => {
+        let lane = laneEnds.findIndex(end => end <= ev.startMin);
+        if (lane === -1) { lane = laneEnds.length; laneEnds.push(ev.endMin); }
+        else { laneEnds[lane] = ev.endMin; }
+        ev.lane = lane;
+      });
+      cluster.forEach(ev => { ev.lanes = laneEnds.length; });
+    });
+    return events;
+  }
+
+  function startOfWeekMonday(d) {
+    const x = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+    x.setDate(x.getDate() - ((x.getDay() + 6) % 7));
+    return x;
+  }
+
+  function dateKey(d) {
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+
+  const CAL_STATUSES = ['Booked', 'Paid', 'Cancelled'];
+  const CAL_PX_PER_HOUR = 44;
+  const CAL_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+  const CAL_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  let calWeekStart = startOfWeekMonday(new Date());
+
+  function calRound(n) { return Math.round(n * 10) / 10; }
+
+  function calEventColor(status) {
+    return status === 'Cancelled' ? 'var(--steel-soft)' : (STATUS_COLORS[status] || 'var(--steel)');
+  }
+
+  function calHourLabel(h) {
+    const h12 = h % 12 === 0 ? 12 : h % 12;
+    return h12 + (h >= 12 && h < 24 ? ' PM' : ' AM');
+  }
+
+  function calTimeText(r) {
+    return [r.FT_ArrivalTime, r.FT_DepartureTime]
+      .map(v => (v ? String(cleanTextValue(v)) : ''))
+      .filter(Boolean)
+      .join(' - ');
+  }
+
+  function calTitle(r) {
+    return [r.GuestName, calTimeText(r), r.Status, r.Rep].filter(Boolean).join(' | ');
+  }
+
+  function calEventBlock(ev, startHour, pxPerMin) {
+    const r = ev.rec;
+    const top = calRound((ev.startMin - startHour * 60) * pxPerMin);
+    const height = calRound(Math.max((ev.endMin - ev.startMin) * pxPerMin - 2, 22));
+    const widthPct = calRound(100 / ev.lanes);
+    const leftPct = calRound(ev.lane * (100 / ev.lanes));
+    return '<div class="cal-event' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
+      + ' data-id="' + escapeHtml(String(r.ID)) + '" title="' + escapeHtml(calTitle(r)) + '"'
+      + ' style="--evc:' + calEventColor(r.Status) + ';top:' + top + 'px;height:' + height + 'px;left:calc(' + leftPct + '% + 2px);width:calc(' + widthPct + '% - 4px)">'
+      + '<div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
+      + '<div class="cal-ev-time">' + escapeHtml(calTimeText(r)) + '</div>'
+      + '<div class="cal-ev-rep">' + escapeHtml(r.Rep || '') + '</div>'
+      + '</div>';
+  }
+
+  function calChip(r) {
+    return '<div class="cal-chip' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
+      + ' data-id="' + escapeHtml(String(r.ID)) + '" title="' + escapeHtml(calTitle(r)) + '"'
+      + ' style="--evc:' + calEventColor(r.Status) + '">' + escapeHtml(r.GuestName || 'Untitled') + '</div>';
+  }
+
+  // Week view of Field Trips that are Booked, Paid, or Cancelled. Deliberately
+  // ignores the sidebar filters so it always shows every trip.
+  function renderCalendar() {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(calWeekStart);
+      d.setDate(calWeekStart.getDate() + i);
+      days.push(d);
+    }
+    const keys = days.map(dateKey);
+    const todayKey = dateKey(new Date());
+
+    const trips = allRecords.filter(r => r.ProgramType === 'Field Trip' && CAL_STATUSES.indexOf(r.Status) !== -1);
+    const undated = trips.filter(r => r.Status !== 'Cancelled' && !toDateInput(r.EventDate)).length;
+
+    const byDay = {};
+    keys.forEach(k => { byDay[k] = { timed: [], allDay: [] }; });
+    trips.forEach(r => {
+      const k = toDateInput(r.EventDate);
+      if (!k || !byDay[k]) return;
+      let s = parseTimeToMinutes(r.FT_ArrivalTime);
+      let e = parseTimeToMinutes(r.FT_DepartureTime);
+      if (s === null && e === null) { byDay[k].allDay.push({ rec: r }); return; }
+      if (s === null) s = Math.max(0, e - 60);
+      if (e === null || e <= s) e = s + 60;
+      e = Math.min(e, 24 * 60);
+      byDay[k].timed.push({ rec: r, startMin: s, endMin: e });
+    });
+
+    let minStart = 8 * 60;
+    let maxEnd = 16 * 60;
+    keys.forEach(k => byDay[k].timed.forEach(ev => {
+      if (ev.startMin < minStart) minStart = ev.startMin;
+      if (ev.endMin > maxEnd) maxEnd = ev.endMin;
+    }));
+    const startHour = Math.floor(minStart / 60);
+    const endHour = Math.min(24, Math.ceil(maxEnd / 60));
+    const pxPerMin = CAL_PX_PER_HOUR / 60;
+    const gridH = (endHour - startHour) * CAL_PX_PER_HOUR;
+
+    const first = days[0];
+    const last = days[6];
+    el('cal-range').textContent = CAL_MONTHS[first.getMonth()] + ' ' + first.getDate() + ' - '
+      + (first.getMonth() === last.getMonth() ? '' : CAL_MONTHS[last.getMonth()] + ' ')
+      + last.getDate() + ', ' + last.getFullYear();
+    el('cal-note').textContent = undated
+      ? undated + ' booked or paid trip' + (undated === 1 ? ' has no event date and is' : 's have no event date and are') + ' not shown'
+      : '';
+
+    let html = '<div class="cal-grid"><div class="cal-corner"></div>';
+    days.forEach((d, i) => {
+      html += '<div class="cal-dayhead' + (keys[i] === todayKey ? ' today' : '') + '">' + CAL_DAY_NAMES[i]
+        + ' <span class="cal-daynum">' + d.getDate() + '</span></div>';
+    });
+    html += '<div class="cal-allday-label">No time</div>';
+    keys.forEach(k => {
+      html += '<div class="cal-allday-cell">' + byDay[k].allDay.map(ev => calChip(ev.rec)).join('') + '</div>';
+    });
+    html += '<div class="cal-gutter" style="height:' + gridH + 'px">';
+    for (let h = startHour; h < endHour; h++) {
+      html += '<div class="cal-hour-label" style="top:' + ((h - startHour) * CAL_PX_PER_HOUR) + 'px">' + calHourLabel(h) + '</div>';
+    }
+    html += '</div>';
+    keys.forEach(k => {
+      const evs = layoutDayEvents(byDay[k].timed);
+      html += '<div class="cal-daycol' + (k === todayKey ? ' today' : '') + '" style="height:' + gridH + 'px;background-size:100% ' + CAL_PX_PER_HOUR + 'px">';
+      evs.forEach(ev => { html += calEventBlock(ev, startHour, pxPerMin); });
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // Narrow screens get a day-by-day list instead of the seven-column grid.
+    html += '<div class="cal-agenda">';
+    days.forEach((d, i) => {
+      const k = keys[i];
+      const items = byDay[k].timed.slice().sort((a, b) => a.startMin - b.startMin).map(ev => ev.rec)
+        .concat(byDay[k].allDay.map(ev => ev.rec));
+      html += '<div class="cal-agenda-day"><div class="cal-agenda-head' + (k === todayKey ? ' today' : '') + '">'
+        + CAL_DAY_NAMES[i] + ', ' + CAL_MONTHS[d.getMonth()] + ' ' + d.getDate() + '</div>';
+      if (!items.length) html += '<div class="cal-agenda-empty">No trips</div>';
+      items.forEach(r => {
+        html += '<div class="cal-agenda-item' + (r.Status === 'Cancelled' ? ' cal-cancelled' : '') + '"'
+          + ' data-id="' + escapeHtml(String(r.ID)) + '" style="--evc:' + calEventColor(r.Status) + '">'
+          + '<div class="cal-ev-name">' + escapeHtml(r.GuestName || 'Untitled') + '</div>'
+          + '<div class="cal-ev-time">' + escapeHtml(calTimeText(r) || 'Time not set') + (r.Rep ? ' | ' + escapeHtml(r.Rep) : '') + '</div>'
+          + '</div>';
+      });
+      html += '</div>';
+    });
+    html += '</div>';
+
+    el('cal-body').innerHTML = html;
+  }
+
+  function setViewMode(mode) {
+    viewMode = mode;
+    el('main-panel').classList.toggle('mode-calendar', mode === 'calendar');
+    el('view-table-btn').classList.toggle('active', mode === 'table');
+    el('view-calendar-btn').classList.toggle('active', mode === 'calendar');
+    el('view-title').textContent = mode === 'calendar' ? 'Calendar' : 'Entries';
+    if (mode === 'calendar') renderCalendar();
+  }
+  el('view-table-btn').onclick = () => setViewMode('table');
+  el('view-calendar-btn').onclick = () => setViewMode('calendar');
+  el('cal-prev').onclick = () => { calWeekStart.setDate(calWeekStart.getDate() - 7); renderCalendar(); };
+  el('cal-next').onclick = () => { calWeekStart.setDate(calWeekStart.getDate() + 7); renderCalendar(); };
+  el('cal-today').onclick = () => { calWeekStart = startOfWeekMonday(new Date()); renderCalendar(); };
+  el('cal-body').addEventListener('click', e => {
+    const target = e.target.closest('[data-id]');
+    if (!target) return;
+    const rec = allRecords.find(r => String(r.ID) === target.dataset.id);
+    if (rec) openViewModal(rec);
+  });
 
   // ---------- Search ----------
   let searchDebounceTimer = null;

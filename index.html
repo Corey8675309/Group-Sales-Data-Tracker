@@ -28,6 +28,7 @@
     --clr-orange: #B5541E;
     --clr-red: #D9483C;
     --clr-crimson: #B3202F;
+    --clr-slate: #5F6B7D;
     --clr-yellow: #C9A227;
     --neutral: #8B96A0;
     --on-dark: #FFFFFF;
@@ -88,6 +89,7 @@
   :root[data-theme="dark"] .badge-booked { background: #232A38; }
   :root[data-theme="dark"] .badge-paid { background: #1E2B24; }
   :root[data-theme="dark"] .badge-cancelled { background: #322323; }
+  :root[data-theme="dark"] .badge-not-interested { background: #272C33; color: #A5B0BE; }
   :root[data-theme="dark"] .type-option:hover { background: #1D2C30; }
   :root[data-theme="dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 16%, var(--paper)); }
   :root[data-theme="dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -120,6 +122,7 @@
   :root[data-theme="fall"] .badge-booked { background: #E6D6BC; }
   :root[data-theme="fall"] .badge-paid { background: #E2E0BC; }
   :root[data-theme="fall"] .badge-cancelled { background: #EFD2C4; }
+  :root[data-theme="fall"] .badge-not-interested { background: #E6DFD3; }
   :root[data-theme="fall"] .type-option:hover { background: #F7EAD3; }
   :root[data-theme="fall"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 10%, var(--paper)); }
   :root[data-theme="fall"] .empty-state .tag { color: var(--teal-deep); }
@@ -152,6 +155,7 @@
   :root[data-theme="fall-dark"] .badge-booked { background: #3A2E1B; }
   :root[data-theme="fall-dark"] .badge-paid { background: #313018; }
   :root[data-theme="fall-dark"] .badge-cancelled { background: #3D251D; }
+  :root[data-theme="fall-dark"] .badge-not-interested { background: #382F27; color: #B7AEA2; }
   :root[data-theme="fall-dark"] .type-option:hover { background: #33261A; }
   :root[data-theme="fall-dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 14%, var(--paper)); }
   :root[data-theme="fall-dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -184,6 +188,7 @@
   :root[data-theme="christmas"] .badge-booked { background: #DCE7F2; }
   :root[data-theme="christmas"] .badge-paid { background: #E1EEE3; }
   :root[data-theme="christmas"] .badge-cancelled { background: #F5DEDE; }
+  :root[data-theme="christmas"] .badge-not-interested { background: #E4E9E8; }
   :root[data-theme="christmas"] .type-option:hover { background: #F0EBDE; }
   :root[data-theme="christmas"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 8%, var(--paper)); }
   :root[data-theme="christmas"] .empty-state .tag { color: var(--teal-deep); }
@@ -216,6 +221,7 @@
   :root[data-theme="christmas-dark"] .badge-booked { background: #182838; }
   :root[data-theme="christmas-dark"] .badge-paid { background: #17301F; }
   :root[data-theme="christmas-dark"] .badge-cancelled { background: #331E1E; }
+  :root[data-theme="christmas-dark"] .badge-not-interested { background: #222A33; color: #A5B0BE; }
   :root[data-theme="christmas-dark"] .type-option:hover { background: #182031; }
   :root[data-theme="christmas-dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 14%, var(--paper)); }
   :root[data-theme="christmas-dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -568,6 +574,7 @@
   .badge-booked { background: #E4ECFB; color: var(--badge-blue); }
   .badge-paid { background: #E1F3EA; color: var(--badge-green); }
   .badge-cancelled { background: #FAE1DE; color: var(--badge-red); }
+  .badge-not-interested { background: #E3E6EB; color: var(--clr-slate); }
 
   .program-tag { font-family: var(--font-body); font-size: 10.5px; color: var(--steel); }
 
@@ -994,6 +1001,7 @@
           <option>Booked</option>
           <option>Paid</option>
           <option>Cancelled</option>
+          <option>Not Interested</option>
         </select>
       </div>
       <div class="form-row">
@@ -1229,7 +1237,7 @@
 
   const el = id => document.getElementById(id);
 
-  const STATUSES = ['Calendly Call', 'Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled'];
+  const STATUSES = ['Calendly Call', 'Voicemail/Email Left', 'Pending Booking', 'To Be Booked', 'Booked', 'Paid', 'Cancelled', 'Not Interested'];
   const TRASH_ICON = '<svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"/><path d="M9 6V4.5A1.5 1.5 0 0 1 10.5 3h3A1.5 1.5 0 0 1 15 4.5V6"/><path d="M6 6l1 13.5A2 2 0 0 0 9 21h6a2 2 0 0 0 2-2L18 6"/><line x1="10" y1="10" x2="10" y2="17"/><line x1="14" y1="10" x2="14" y2="17"/></svg>';
 
   const STATUS_COLORS = {
@@ -1239,7 +1247,8 @@
     'To Be Booked': 'var(--teal)',
     'Booked': 'var(--clr-blue)',
     'Paid': 'var(--sage)',
-    'Cancelled': 'var(--clr-red)'
+    'Cancelled': 'var(--clr-red)',
+    'Not Interested': 'var(--clr-slate)'
   };
   const REP_COLORS = {
     'Corey': 'var(--clr-purple)',

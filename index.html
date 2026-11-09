@@ -630,6 +630,11 @@
   }
   .subsection-divider:first-child { margin-top: 0; }
   .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); }
+  /* Edit and View pop-ups: fixed title, scrolling data, fixed button bar */
+  .modal-fixed { display: flex; flex-direction: column; padding: 0; overflow: hidden; }
+  .modal-fixed .modal-head { flex-shrink: 0; padding: 22px 24px 0; }
+  .modal-fixed .modal-scroll { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 4px 24px 14px; }
+  .modal-fixed .modal-actions { flex-shrink: 0; margin-top: 0; padding: 14px 24px; background: var(--paper); }
   .modal-danger { margin-right: auto; background: transparent; border: none; color: var(--rust); font-family: var(--font-body); font-size: 11.5px; cursor: pointer; }
 
   /* Type picker */
@@ -980,9 +985,12 @@
 
 <!-- RECORD MODAL -->
 <div class="overlay" id="record-overlay">
-  <div class="modal">
-    <h3 id="record-modal-title">New entry</h3>
-    <div class="modal-kicker" id="record-modal-kicker"></div>
+  <div class="modal modal-fixed">
+    <div class="modal-head">
+      <h3 id="record-modal-title">New entry</h3>
+      <div class="modal-kicker" id="record-modal-kicker"></div>
+    </div>
+    <div class="modal-scroll">
     <input type="hidden" id="f-id">
     <input type="hidden" id="f-programtype">
 
@@ -1035,6 +1043,8 @@
       <textarea id="f-notes" placeholder="Anything worth remembering next time..."></textarea>
     </div>
 
+    </div>
+
     <div class="modal-actions">
       <button class="modal-danger" id="delete-record-btn" style="display:none;">Delete entry</button>
       <button class="btn btn-ghost" id="convert-record-btn" style="display:none;"></button>
@@ -1046,14 +1056,16 @@
 
 <!-- VIEW MODAL -->
 <div class="overlay" id="view-overlay">
-  <div class="modal">
-    <div class="view-header-row">
+  <div class="modal modal-fixed">
+    <div class="view-header-row modal-head">
       <div>
         <h3 id="view-modal-title">Entry</h3>
         <div class="modal-kicker" id="view-modal-kicker"></div>
       </div>
     </div>
-    <div id="view-modal-body"></div>
+    <div class="modal-scroll">
+      <div id="view-modal-body"></div>
+    </div>
     <div class="modal-actions">
       <button class="btn btn-ghost" id="close-view-btn">Close</button>
       <button class="btn btn-primary" id="edit-from-view-btn">Edit</button>
@@ -1853,6 +1865,7 @@
 
     renderTypeFields(type, record);
     recordOverlay.classList.add('open');
+    recordOverlay.querySelector('.modal-scroll').scrollTop = 0;
   }
 
   function toDateInput(val) {
@@ -2044,6 +2057,7 @@
 
     el('view-modal-body').innerHTML = html;
     viewOverlay.classList.add('open');
+    viewOverlay.querySelector('.modal-scroll').scrollTop = 0;
   }
 
   el('close-view-btn').onclick = () => viewOverlay.classList.remove('open');

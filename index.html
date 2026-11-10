@@ -29,6 +29,7 @@
     --clr-red: #D9483C;
     --clr-crimson: #B3202F;
     --clr-slate: #5F6B7D;
+    --clr-amber: #C98A12;
     --clr-yellow: #C9A227;
     --neutral: #8B96A0;
     --on-dark: #FFFFFF;
@@ -90,6 +91,7 @@
   :root[data-theme="dark"] .badge-paid { background: #1E2B24; }
   :root[data-theme="dark"] .badge-cancelled { background: #322323; }
   :root[data-theme="dark"] .badge-not-interested { background: #272C33; color: #A5B0BE; }
+  :root[data-theme="dark"] .badge-making-adjustments { background: #3A3120; color: #E6C36A; }
   :root[data-theme="dark"] .type-option:hover { background: #1D2C30; }
   :root[data-theme="dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 16%, var(--paper)); }
   :root[data-theme="dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -123,6 +125,7 @@
   :root[data-theme="fall"] .badge-paid { background: #E2E0BC; }
   :root[data-theme="fall"] .badge-cancelled { background: #EFD2C4; }
   :root[data-theme="fall"] .badge-not-interested { background: #E6DFD3; }
+  :root[data-theme="fall"] .badge-making-adjustments { background: #F3E6BF; }
   :root[data-theme="fall"] .type-option:hover { background: #F7EAD3; }
   :root[data-theme="fall"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 10%, var(--paper)); }
   :root[data-theme="fall"] .empty-state .tag { color: var(--teal-deep); }
@@ -156,6 +159,7 @@
   :root[data-theme="fall-dark"] .badge-paid { background: #313018; }
   :root[data-theme="fall-dark"] .badge-cancelled { background: #3D251D; }
   :root[data-theme="fall-dark"] .badge-not-interested { background: #382F27; color: #B7AEA2; }
+  :root[data-theme="fall-dark"] .badge-making-adjustments { background: #40331A; color: #E3C072; }
   :root[data-theme="fall-dark"] .type-option:hover { background: #33261A; }
   :root[data-theme="fall-dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 14%, var(--paper)); }
   :root[data-theme="fall-dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -189,6 +193,7 @@
   :root[data-theme="christmas"] .badge-paid { background: #E1EEE3; }
   :root[data-theme="christmas"] .badge-cancelled { background: #F5DEDE; }
   :root[data-theme="christmas"] .badge-not-interested { background: #E4E9E8; }
+  :root[data-theme="christmas"] .badge-making-adjustments { background: #F4EBC8; }
   :root[data-theme="christmas"] .type-option:hover { background: #F0EBDE; }
   :root[data-theme="christmas"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 8%, var(--paper)); }
   :root[data-theme="christmas"] .empty-state .tag { color: var(--teal-deep); }
@@ -222,6 +227,7 @@
   :root[data-theme="christmas-dark"] .badge-paid { background: #17301F; }
   :root[data-theme="christmas-dark"] .badge-cancelled { background: #331E1E; }
   :root[data-theme="christmas-dark"] .badge-not-interested { background: #222A33; color: #A5B0BE; }
+  :root[data-theme="christmas-dark"] .badge-making-adjustments { background: #35301C; color: #E6C36A; }
   :root[data-theme="christmas-dark"] .type-option:hover { background: #182031; }
   :root[data-theme="christmas-dark"] tbody tr:hover { background: color-mix(in srgb, var(--teal) 14%, var(--paper)); }
   :root[data-theme="christmas-dark"] .empty-state .tag { color: var(--steel-soft); }
@@ -575,6 +581,7 @@
   .badge-paid { background: #E1F3EA; color: var(--badge-green); }
   .badge-cancelled { background: #FAE1DE; color: var(--badge-red); }
   .badge-not-interested { background: #E3E6EB; color: var(--clr-slate); }
+  .badge-making-adjustments { background: #FBF0CF; color: #7A5A0A; }
 
   .program-tag { font-family: var(--font-body); font-size: 10.5px; color: var(--steel); }
 
@@ -840,7 +847,7 @@
         </div>
         <div class="cal-range" id="cal-range"></div>
         <input type="date" class="cal-jump" id="cal-jump" title="Jump to a date">
-        <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--steel-soft)"></i>Cancelled</div>
+        <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--clr-amber)"></i>Making Adjustments<i style="background:var(--steel-soft)"></i>Cancelled</div>
         <div class="cal-filter-note" id="cal-filter-note"></div>
         <div class="cal-note" id="cal-note"></div>
       </div>
@@ -1008,6 +1015,7 @@
           <option>To Be Booked</option>
           <option>Booked</option>
           <option>Paid</option>
+          <option>Making Adjustments</option>
           <option>Cancelled</option>
           <option>Not Interested</option>
         </select>
@@ -1260,7 +1268,8 @@
     'Booked': 'var(--clr-blue)',
     'Paid': 'var(--sage)',
     'Cancelled': 'var(--clr-red)',
-    'Not Interested': 'var(--clr-slate)'
+    'Not Interested': 'var(--clr-slate)',
+    'Making Adjustments': 'var(--clr-amber)'
   };
   const REP_COLORS = {
     'Corey': 'var(--clr-purple)',
@@ -2351,7 +2360,7 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  const CAL_STATUSES = ['Booked', 'Paid', 'Cancelled'];
+  const CAL_STATUSES = ['Booked', 'Paid', 'Making Adjustments', 'Cancelled'];
   const CAL_PX_PER_HOUR = 48;
   const CAL_MAX_SIDE_BY_SIDE = 3; // more trips than this happening at once collapse into one card
   const CAL_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

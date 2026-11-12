@@ -847,7 +847,7 @@
         </div>
         <div class="cal-range" id="cal-range"></div>
         <input type="date" class="cal-jump" id="cal-jump" title="Jump to a date">
-        <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--clr-amber)"></i>Making Adjustments<i style="background:var(--steel-soft)"></i>Cancelled</div>
+        <div class="cal-legend"><i style="background:var(--clr-blue)"></i>Booked<i style="background:var(--sage)"></i>Paid<i style="background:var(--steel-soft)"></i>Cancelled</div>
         <div class="cal-filter-note" id="cal-filter-note"></div>
         <div class="cal-note" id="cal-note"></div>
       </div>
@@ -2360,7 +2360,7 @@
     return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
 
-  const CAL_STATUSES = ['Booked', 'Paid', 'Making Adjustments', 'Cancelled'];
+  const CAL_STATUSES = ['Booked', 'Paid', 'Cancelled'];
   const CAL_PX_PER_HOUR = 48;
   const CAL_MAX_SIDE_BY_SIDE = 3; // more trips than this happening at once collapse into one card
   const CAL_DAY_NAMES = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];

@@ -1495,6 +1495,17 @@
     let rows = getFiltered();
 
     rows.sort((a, b) => {
+      // Call times are saved as text like "9:30 AM", which sorts wrong as text ("10:00 AM" would
+      // land before "9:30 AM"). Compare the actual time instead; entries with no call time
+      // always sink to the bottom, whichever direction is chosen.
+      if (sortKey === 'CallTime') {
+        const am = parseTimeToMinutes(a.CallTime);
+        const bm = parseTimeToMinutes(b.CallTime);
+        if (am === null && bm === null) return 0;
+        if (am === null) return 1;
+        if (bm === null) return -1;
+        return sortDir === 'asc' ? am - bm : bm - am;
+      }
       let av = a[sortKey], bv = b[sortKey];
       if (sortKey === 'Headcount') {
         av = computeHeadcount(a);

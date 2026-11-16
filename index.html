@@ -626,6 +626,24 @@
     font-family: var(--font-body); font-size: 13.5px; padding: 9px 10px; border: 1px solid var(--line); background: var(--paper); color: var(--ink);
   }
   .form-row textarea { resize: vertical; min-height: 60px; }
+  .time-btn {
+    all: unset; box-sizing: border-box; display: block; position: relative; width: 100%; cursor: pointer;
+    font-family: var(--font-body); font-size: 13.5px; padding: 9px 28px 9px 10px;
+    border: 1px solid var(--line); background: var(--paper); color: var(--ink);
+  }
+  .time-btn::after { content: "\25BE"; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--steel); }
+  .time-btn.empty { color: var(--steel-soft); }
+  .time-btn:focus-visible, .time-btn[aria-expanded="true"] { border-color: var(--teal); }
+  .time-pop {
+    position: fixed; z-index: 2000; box-sizing: border-box; overflow-y: auto; overscroll-behavior: contain; outline: none;
+    background: var(--paper); border: 1px solid var(--line); box-shadow: 0 8px 24px rgba(0,0,0,0.22); padding: 4px 0;
+  }
+  .time-pop-item { padding: 7px 12px; font-family: var(--font-body); font-size: 13px; color: var(--ink); cursor: pointer; }
+  .time-pop-item.none { font-size: 12px; color: var(--steel); border-bottom: 1px solid var(--line); margin-bottom: 2px; }
+  .time-pop-item:hover, .time-pop-item.active { background: color-mix(in srgb, var(--teal) 16%, var(--paper)); }
+  .time-pop-item.selected { font-weight: 700; color: var(--teal-deep); }
+  :root[data-theme="fall"] .time-btn, :root[data-theme="fall-dark"] .time-btn { border-radius: 12px; }
+  :root[data-theme="fall"] .time-pop, :root[data-theme="fall-dark"] .time-pop { border-radius: 12px; }
   .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
   .section-divider {
     font-family: var(--font-body); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
@@ -1153,17 +1171,27 @@
     'Outreach': 'Off-site / community programs.'
   };
 
-  // 15-minute steps from 8:00 AM to 4:00 PM, saved as text like "10:30 AM".
-  const TIME_OPTIONS = (() => {
-    const out = [''];
-    for (let m = 8 * 60; m <= 16 * 60; m += 15) {
+  // Arrival and departure times are offered in 15-minute steps, limited to the hours of the
+  // location chosen on the entry, and saved as text like "10:30 AM". Anything not listed here
+  // (Outreach, or no location) uses the default window.
+  const DEFAULT_TIME_WINDOW = { open: '08:00', close: '16:00' };
+  const LOCATION_HOURS = {
+    'DPS':  { open: '09:00', close: '16:00' },
+    'DPKH': { open: '09:30', close: '16:00' },
+    'DPKR': { open: '10:30', close: '16:00' }
+  };
+
+  function timeOptionsFor(location) {
+    const hrs = LOCATION_HOURS[location] || DEFAULT_TIME_WINDOW;
+    const toMin = s => { const p = s.split(':'); return parseInt(p[0], 10) * 60 + parseInt(p[1], 10); };
+    const out = [];
+    for (let m = Math.ceil(toMin(hrs.open) / 15) * 15; m <= toMin(hrs.close); m += 15) {
       const h24 = Math.floor(m / 60);
-      const min = m % 60;
       const h = h24 % 12 === 0 ? 12 : h24 % 12;
-      out.push(h + ':' + String(min).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM'));
+      out.push(h + ':' + String(m % 60).padStart(2, '0') + ' ' + (h24 >= 12 ? 'PM' : 'AM'));
     }
     return out;
-  })();
+  }
 
   const TYPE_FIELDS = {
     'Field Trip': [
@@ -1179,8 +1207,8 @@
       { key: 'FT_NumStudents', label: 'Number of students/children', type: 'number' },
       { key: 'FT_NumChaperones', label: 'Number of chaperones/adults', type: 'number' },
       { key: 'FT_GradeLevel', label: 'Grade level' },
-      { key: 'FT_ArrivalTime', label: 'Arrival time', type: 'select', options: TIME_OPTIONS },
-      { key: 'FT_DepartureTime', label: 'Departure time', type: 'select', options: TIME_OPTIONS },
+      { key: 'FT_ArrivalTime', label: 'Arrival time', type: 'timepicker' },
+      { key: 'FT_DepartureTime', label: 'Departure time', type: 'timepicker' },
       { key: 'FT_Transportation', label: 'Transportation method' },
       { key: 'FT_TransportationNumber', label: 'Transportation number' },
       { key: 'FT_Lunch', label: 'Lunch' },
@@ -1781,11 +1809,122 @@
   // ---------- Record modal ----------
   const recordOverlay = el('record-overlay');
 
+  // ---------- Time picker popup (Arrival / Departure) ----------
+  let timePopover = null; // { pop, btn, onDocDown, onClose }
+
+  function closeTimePopover() {
+    if (!timePopover) return;
+    const p = timePopover;
+    timePopover = null;
+    p.pop.remove();
+    p.btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('mousedown', p.onDocDown, true);
+    window.removeEventListener('resize', p.onClose);
+    const scroller = recordOverlay.querySelector('.modal-scroll');
+    if (scroller) scroller.removeEventListener('scroll', p.onClose);
+  }
+
+  // A small scrollable list that opens under the field. The times offered depend on the
+  // Location currently chosen on the entry, so changing the location changes the list.
+  function openTimePopover(btn, hidden, onPick) {
+    closeTimePopover();
+    const rows = [{ value: '', label: 'Not set' }].concat(timeOptionsFor(el('f-location').value).map(t => ({ value: t, label: t })));
+    const pop = document.createElement('div');
+    pop.className = 'time-pop';
+    pop.setAttribute('role', 'listbox');
+    pop.tabIndex = -1;
+
+    let active = rows.findIndex(r => r.value === hidden.value && r.value !== '');
+    if (active === -1) active = 1;
+    const itemEls = rows.map((r, i) => {
+      const item = document.createElement('div');
+      item.className = 'time-pop-item' + (r.value === '' ? ' none' : '') + (r.value === hidden.value ? ' selected' : '');
+      item.setAttribute('role', 'option');
+      item.textContent = r.label;
+      item.onclick = () => choose(i);
+      pop.appendChild(item);
+      return item;
+    });
+
+    function choose(i) {
+      hidden.value = rows[i].value;
+      onPick();
+      closeTimePopover();
+      btn.focus();
+    }
+    function setActive(i, keepInView) {
+      active = Math.max(0, Math.min(rows.length - 1, i));
+      itemEls.forEach((e, idx) => e.classList.toggle('active', idx === active));
+      if (keepInView) {
+        const e = itemEls[active];
+        if (e.offsetTop < pop.scrollTop) pop.scrollTop = e.offsetTop;
+        else if (e.offsetTop + e.offsetHeight > pop.scrollTop + pop.clientHeight) pop.scrollTop = e.offsetTop + e.offsetHeight - pop.clientHeight;
+      }
+    }
+    pop.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); setActive(active + 1, true); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1, true); }
+      else if (e.key === 'Enter') { e.preventDefault(); choose(active); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeTimePopover(); btn.focus(); }
+      else if (e.key === 'Tab') { closeTimePopover(); }
+    });
+
+    document.body.appendChild(pop);
+    const rect = btn.getBoundingClientRect();
+    const width = Math.max(rect.width, 150);
+    pop.style.width = width + 'px';
+    pop.style.left = Math.max(8, Math.min(rect.left, window.innerWidth - width - 8)) + 'px';
+    const below = window.innerHeight - rect.bottom;
+    if (below < 240 && rect.top > below) {
+      pop.style.bottom = (window.innerHeight - rect.top + 4) + 'px';
+      pop.style.maxHeight = Math.max(120, Math.min(220, rect.top - 12)) + 'px';
+    } else {
+      pop.style.top = (rect.bottom + 4) + 'px';
+      pop.style.maxHeight = Math.max(120, Math.min(220, below - 12)) + 'px';
+    }
+    setActive(active, false);
+    pop.scrollTop = Math.max(0, itemEls[active].offsetTop - pop.clientHeight / 2 + itemEls[active].offsetHeight / 2);
+    pop.focus();
+
+    const onDocDown = e => { if (!pop.contains(e.target) && e.target !== btn) closeTimePopover(); };
+    const onClose = () => closeTimePopover();
+    document.addEventListener('mousedown', onDocDown, true);
+    window.addEventListener('resize', onClose);
+    const scroller = recordOverlay.querySelector('.modal-scroll');
+    if (scroller) scroller.addEventListener('scroll', onClose);
+    btn.setAttribute('aria-expanded', 'true');
+    timePopover = { pop: pop, btn: btn, onDocDown: onDocDown, onClose: onClose };
+  }
+
   function buildFieldRow(f, record) {
     const wrap = document.createElement('div');
     wrap.className = 'form-row';
     const label = document.createElement('label');
     label.textContent = f.label;
+    if (f.type === 'timepicker') {
+      // The hidden input keeps the saved value (so the save step and older entries work as before);
+      // the button shows it and opens the popup.
+      const hidden = document.createElement('input');
+      hidden.type = 'hidden';
+      hidden.id = 'tf-' + f.key;
+      hidden.dataset.key = f.key;
+      hidden.value = (record && record[f.key] !== undefined && record[f.key] !== '') ? String(cleanTextValue(record[f.key])) : '';
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'time-btn';
+      btn.setAttribute('aria-haspopup', 'listbox');
+      btn.setAttribute('aria-expanded', 'false');
+      const showValue = () => { btn.textContent = hidden.value || 'Select time...'; btn.classList.toggle('empty', !hidden.value); };
+      showValue();
+      btn.onclick = () => {
+        if (timePopover && timePopover.btn === btn) { closeTimePopover(); return; }
+        openTimePopover(btn, hidden, showValue);
+      };
+      wrap.appendChild(label);
+      wrap.appendChild(btn);
+      wrap.appendChild(hidden);
+      return wrap;
+    }
     let input;
     if (f.type === 'select') {
       input = document.createElement('select');
@@ -1817,6 +1956,7 @@
   }
 
   function renderTypeFields(type, record) {
+    closeTimePopover();
     const container = el('type-fields-container');
     container.innerHTML = '';
     const fields = TYPE_FIELDS[type] || [];
@@ -1894,7 +2034,7 @@
     if (isNaN(d)) return '';
     return d.toISOString().slice(0,10);
   }
-  function closeRecordModal() { recordOverlay.classList.remove('open'); }
+  function closeRecordModal() { closeTimePopover(); recordOverlay.classList.remove('open'); }
 
   el('cancel-record-btn').onclick = closeRecordModal;
 
